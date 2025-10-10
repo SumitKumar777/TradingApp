@@ -1,21 +1,16 @@
-import type {RedisClientType} from  "redis";
-import { createClient  } from "redis";
+import type {RedisClientType} from "redis";
+import { createClient } from "redis";
 
+let redisClient: RedisClientType;
 
+export async function connectRedisClient(): Promise<RedisClientType> {
+   if (!redisClient) {
+      redisClient = createClient();
 
-export const redisClient:RedisClientType= createClient();
+      redisClient.on("error", (err) => console.error("Redis error:", err));
+      await redisClient.connect();
+      console.log("Redis successfully connected");
+   }
 
-export async function connectRedisClient():Promise<void>{
-
-   await redisClient.connect();
-
-   console.log("redis is successfully connected");
+   return redisClient;
 }
-
-redisClient.on("error",()=>{
-   console.log("error in redisclient")
-})
-
-
-
-
