@@ -1,26 +1,25 @@
 {
-	"name": "wsserver",
+	"name": "@repo/pricepollar",
 	"version": "1.0.0",
 	"description": "",
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"build": "tsc -b ",
-		"dev": "concurrently \"tsc -b --watch\" \"nodemon ./dist/index.js\""
+		"dev": "concurrently \"tsc -b --watch\" \"nodemon ./dist\""
 	},
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
 	"devDependencies": {
 		"@repo/redisclient": "workspace:*",
-		"@repo/types": "workspace:*",
 		"@repo/typescript-config": "workspace:*",
+		"@repo/timescaledb":"workspace:*",
 		"@types/ws": "^8.18.1",
 		"concurrently": "^9.2.1",
 		"nodemon": "^3.1.10"
 	},
 	"dependencies": {
-		"redis": "^5.8.3",
 		"ws": "^8.18.3"
 	}
 }
