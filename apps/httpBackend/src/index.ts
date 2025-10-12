@@ -35,6 +35,5 @@ app.use((req,res)=>{
    res.status(404).send("invalid request");
 })
 
-console.log("hi there http backend");
 
 app.listen(PORT,()=>console.log(`the app is listening on port ${PORT}`))

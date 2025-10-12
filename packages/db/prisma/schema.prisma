@@ -17,5 +17,51 @@ datasource db {
 
 model User{
   id  String @id @default(uuid())
-  name String
+  username String
+  email    String 
+  password String
+  walletBalance Decimal @default(0)
+  orders  Orders[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Orders{
+  id Int @id @default(autoincrement())
+  userId String
+  amount Decimal
+  type   OrderType
+  position OrderPosition
+  status OrderStatus
+  pnl Decimal
+  takeProfit  Decimal?
+  stopLoss  Decimal?
+  entryPrice Decimal
+  exitPrice Decimal
+  closingReason ClosingReason
+  orderCreatedAt  DateTime @default(now())
+  orderClosedAt   DateTime?
+  updatedAt DateTime @updatedAt
+  user  User @relation(fields: [userId],references: [id])
+}
+
+enum OrderType {
+  Market
+  Limit
+}
+
+enum OrderPosition {
+  Long
+  Short
+}
+
+enum OrderStatus {
+  Open
+  Closed
+}
+
+
+enum ClosingReason {
+  Manual
+  Automatic
 }
