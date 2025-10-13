@@ -30,6 +30,7 @@ model Orders{
   id Int @id @default(autoincrement())
   userId String
   amount Decimal
+  quantity Int
   type   OrderType
   position OrderPosition
   status OrderStatus
