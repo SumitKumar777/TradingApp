@@ -19,7 +19,14 @@ importers:
         version: 5.9.2
 
   apps/engine:
+    dependencies:
+      redis:
+        specifier: ^5.8.3
+        version: 5.8.3
     devDependencies:
+      '@repo/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@repo/redisclient':
         specifier: workspace:*
         version: link:../../packages/redisClient

@@ -30,16 +30,16 @@ model Orders{
   id Int @id @default(autoincrement())
   userId String
   amount Decimal
-  quantity Int
+  quantity Decimal
   type   OrderType
   position OrderPosition
   status OrderStatus
-  pnl Decimal
+  pnl Decimal?
   takeProfit  Decimal?
   stopLoss  Decimal?
   entryPrice Decimal
-  exitPrice Decimal
-  closingReason ClosingReason
+  exitPrice Decimal?
+  closingReason ClosingReason @default(Automatic)
   orderCreatedAt  DateTime @default(now())
   orderClosedAt   DateTime?
   updatedAt DateTime @updatedAt

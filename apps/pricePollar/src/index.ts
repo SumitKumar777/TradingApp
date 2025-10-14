@@ -44,29 +44,39 @@ async function main() {
   });
 
   binanceWs.on("message", async (data) => {
-   //  console.log("Received aggTrade message", data.toString());
-
-    const price = JSON.parse(data.toString()).data;
-
-    await redisClient.publish("bitcoin", data.toString());
+    try {
+      const parsedTokenPrice=JSON.parse(data.toString());
+      if(parsedTokenPrice.data){
+        await redisClient.publish("bitcoin",data.toString());
+      }
+    } catch (error) {
+      console.log("error in the pricePollar wrong ",data.toString());
+    }
   });
 
   binanceChartData.on("message", async (data) => {
    //  console.log("received message on the binance chart", data.toString());
 
     try {
-       const subData=await redisClient.publish("candlePriceChartData", data.toString());
+      const parsedCandlePriceData=JSON.parse(data.toString());
 
-       console.log(subData,"subData");
+      if(parsedCandlePriceData.data){
+        // for the websocket so that to make the chart on the frontend 
+        const subData = await redisClient.publish("candlePriceChartData", data.toString());
 
-       try {
+        console.log(subData, "subData");
+
+        try {
+          // for the batchUploader/dbUploader to insert the chart candle to the timescaledb;
           const id = await redisClient.xAdd("candleData2", "*", {
-             payload: data.toString(),
+            payload: data.toString(),
           });
           console.log("Added to Redis stream candleData with ID:", id);
-       } catch (err) {
+        } catch (err) {
           console.error("Failed to xAdd:", err);
-       }
+        }
+      }
+   
     } catch (error) {
       console.log("error in the pricePollar sub",error);
     }
