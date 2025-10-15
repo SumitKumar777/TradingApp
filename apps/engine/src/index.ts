@@ -12,8 +12,6 @@ const tokenPriceSubscriber=createClient();
 async function startEnigne(){
    try {
 
-      await tokenPriceSubscriber.connect();
-
       const tokenPrice = await tokenPriceSubscriber.subscribe("bitcoin", (message) => {
          const parsedData = JSON.parse(message);
          const price=parsedData.data.p;
@@ -30,8 +28,9 @@ async function startEnigne(){
 
 
 async function main(){
-   await startEnigne()
-   await startOrderProcesser();
+   await tokenPriceSubscriber.connect();
+    startEnigne()
+    startOrderProcesser();
 }
 
 

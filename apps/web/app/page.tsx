@@ -1,8 +1,14 @@
 
-export default function Home() {
-  return (
-    <div className="text-2xl">
-      hi there from the Betting App
-    </div>
-  );
+
+export default function Dashboard({ isAdmin=false }) {
+	return (
+		<div>
+			<h1>Dashboard</h1>
+			{isAdmin ? (
+				<div>Welcome to Admin Panel</div>
+			) : (
+				<div>Welcome, User!</div>
+			)}{" "}
+		</div>
+	);
 }
