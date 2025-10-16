@@ -1,6 +1,5 @@
 // endpoints related orders placement and order history
 import { Router } from "express";
-import pgPool from "@repo/timescaledb";
 import {authUser} from "../../middleware/middleware";
 import z from "zod";
 import Decimal from "decimal.js";
@@ -20,11 +19,12 @@ const placeOrderSchema = z.object({
    position: z.enum(["long", "short"]),
 });
 
-const closeOrderSchema=z.object({
-
-})
-
-
+const closeOrderSchema = z.object({
+   id: z.string()
+      .min(1, { message: "id cannot be empty" })
+      .regex(/^\d+$/, { message: "id must be a number" }) 
+      .transform(v => Number(v))
+});
 
 
 
@@ -32,7 +32,7 @@ const closeOrderSchema=z.object({
 // place order
 
 
-let httpRedisClient;
+
 // create order 
 //          model Orders{
 //   id Int @id @default (autoincrement())
@@ -132,7 +132,7 @@ orderRouter.post("/placeorder",authUser, async(req,res)=>
 
 
 
-         httpRedisClient=await connectRedisClient();
+         const httpRedisClient=await connectRedisClient();
 
          const addToStream = await httpRedisClient.xAdd("orderList", "*", { orderData: JSON.stringify(placeOrder)});
 
@@ -149,16 +149,61 @@ orderRouter.post("/placeorder",authUser, async(req,res)=>
 
 // close order
 
-orderRouter.post("/closeorder",async(req,res)=>{
-   return res.status(201).json({
-      status: "success", message: "order closed",})
+orderRouter.post("/closeorder",authUser,async(req,res)=>{
+   const reqBodyData= closeOrderSchema.safeParse(req.body);
+   if(!reqBodyData.success){
+      return res.status(401).json({status:"error",message:"invalid request body/ id must be provided",error:reqBodyData.error});
+   }
+   const orderid=reqBodyData.data.id;
+   try {
+
+      const checkIfClosed=await prisma.orders.findUnique({
+         where:{
+            id:orderid
+         }
+      })
+      if(checkIfClosed?.status==="Closed"){
+         return res.status(201).json({ status: "success", message: "order is already closed" });
+      }
+      const httpRedisClient = await connectRedisClient();
+
+
+      const addToStream = await httpRedisClient.xAdd("order:close_request", "*", { closeOrderData: reqBodyData.data.id.toString() });
+      console.log("close Order request add to stream", addToStream);
+
+
+      return res.status(201).json({
+         status: "success", message: "order closed",
+      })
+   } catch (error) {
+      console.log("error in closing the order ",error);
+      return res.status(500).json({status:"failed",message:"Internal server error in closing the order",error})
+   }
 })
 
 // orderHistory 
 
-orderRouter.get("/getorderhistory",async(req,res)=>{
-   return res.status(201).json({
-      status: "success", message: "order history",});
+orderRouter.get("/orderhistory",authUser,async(req,res)=>{
+   const userId=req.userId;
+   try {
+      const orderHistory=await prisma.user.findUnique({
+         where:{
+            id:userId
+         },
+         include:{
+            orders:{
+               orderBy:{
+                  orderClosedAt:"asc"
+               }
+            }
+         }
+      })
+      return res.status(200).json({status:"succes",message:`order history for this user ${userId}`,data:orderHistory?.orders});
+   } catch (error) {
+      console.log("error in getting the order history ",error);
+      return res.status(500).json({status:"failed",message:"Internal server error in getting the order history",error})
+   }
+   
 })
 
 export default orderRouter;
