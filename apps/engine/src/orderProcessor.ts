@@ -6,6 +6,7 @@ const orderConsumerClient=createClient();
 const orderUpdateProducer=createClient();
 
 
+
 // {
 //    [1]   id: 6,
 //       [1]   userId: '405c2f5a-057a-4fd8-a112-acd7edb47a93',
@@ -22,7 +23,7 @@ const orderUpdateProducer=createClient();
 //                                        [1]   closingReason: 'Automatic',
 //                                           [1]   orderCreatedAt: 2025 - 10 - 15T17: 49: 57.783Z,
 //                                              [1]   orderClosedAt: null,
-//                                                 [1]   updatedAt: 2025 - 10 - 15T17: 49: 57.783Z
+//                                               [1]   updatedAt: 2025 - 10 - 15T17: 49: 57.783Z
 //                                                 [1]
 // }
 
@@ -65,6 +66,7 @@ const allLimitOrders:Set<OrderType>=new Set();
 // function to check if the order has hit stop loss 
 // function to check if the order has hit take profit
 // function to calculate the pnl on the basis of order like short or long type 
+// function to has the limit order has hit the prices if yes remove from the array and put them in allOpenorder and send their updates to the 
 
 
 
@@ -72,16 +74,38 @@ const allLimitOrders:Set<OrderType>=new Set();
 
 priceEvent.on("priceUpdate",(data)=>{
    console.log("bitcoin price in orderProcessor",data);
-
-
-
+   process(data);
 
 })
+
+
+
+async function process(price: any) {
+   
+
+   for (const element of allOpenOrders) {
+      
+      const pnl = price;
+
+      const updatedOrder = {
+         id: element.id.toString(),
+         userId: element.userId.toString(),
+         moneyInvested: element.amount.toString(),
+         pnl: pnl.toString(),
+      };
+      console.log(updatedOrder, "updatedOrder");
+
+      const addUpdatedOrder = await orderUpdateProducer.xAdd("orders:updated", "*", updatedOrder);
+      console.log("order added to stream with this userId", element.id);
+   }
+}
 
 
 export async function startOrderProcesser(){
 
    await orderConsumerClient.connect();
+   await orderUpdateProducer.connect();
+   
 
 
    while(true){
@@ -92,9 +116,9 @@ export async function startOrderProcesser(){
 
       if(orderDetials){
          //@ts-ignore
-         const orderDetailData=orderDetails[0].messages[0];
-         console.log("orderDetails",orderDetailData.message);
-         const parsedOrderData:OrderType=JSON.parse(orderDetailData.message);
+         const orderDetailData = orderDetials[0].messages[0];
+         console.log("orderDetails",typeof orderDetailData.message,"order",orderDetailData.message);
+         const parsedOrderData:OrderType=JSON.parse(orderDetailData.message.orderData);
 
          orderMap.set(orderDetailData.id,parsedOrderData);
 
