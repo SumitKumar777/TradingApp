@@ -1,84 +1,135 @@
-import { createClient } from "redis";
-import { WebSocketServer } from "ws";
+import { createClient, RedisClientType } from "redis";
+import { WebSocket, WebSocketServer } from "ws";
+import dotenv from "dotenv";
+import path from "path";
+import url from "url";
+import jwt, { JsonWebTokenError, JwtPayload } from "jsonwebtoken";
 
-const wbClient = createClient();
-const updatedOrderConsumer=createClient();
+dotenv.config({ path: path.join(__dirname, "../../.env") });
 
-function startWebsocketSever() {
-  const wssServer = new WebSocketServer({ port: 8080 });
-
-  wssServer.on("error", () => console.log("error"));
-
-  wssServer.on("connection", (ws) => {
-    ws.on("error", () => console.log("error in websocket client connection "));
-
-    ws.on("message", (data) => {
-      console.log("received message on websocket", data.toString());
-    });
-
-    ws.send("HI From the server");
-  });
-
-  return wssServer;
-}
+const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key";
 
 
-async function startUpdatedOrderListener(wss:any){
-  await updatedOrderConsumer.connect();
+const redisPublisher: RedisClientType = createClient();
+const redisConsumer: RedisClientType = createClient();
 
-  while(true){
-    const updatedOrder=await updatedOrderConsumer.xRead([{key:"orders:updated",id:"$"}],
-      {BLOCK:0,COUNT:1}
-    )
-    console.log("updatedOrders",updatedOrder);
 
-    wss.clients.forEach((ws:any)=>{
-      if(ws.readyState===WebSocket.OPEN){
-        //@ts-ignore
-        ws.send(JSON.stringify(updatedOrder[0].messages[0].message));
-      }
-    })
+const userSocketMap = new Map<string, WebSocket>();
+const activeSockets = new Set<WebSocket>();
+
+
+function authenticateUser(reqUrl?: string): { success: boolean; data?: JwtPayload } {
+  try {
+    if (!reqUrl) throw new Error("Missing request URL");
+
+    const token = url.parse(reqUrl, true).query.token as string | undefined;
+    if (!token) throw new Error("Token not found");
+
+    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    return { success: true, data: decoded };
+  } catch (error: unknown) {
+    if (error instanceof JsonWebTokenError) {
+      console.error("JWT Authentication error:", error.message);
+    } else {
+      console.error("Error parsing token:", error);
+    }
+    return { success: false };
   }
 }
 
-async function startRedis(wss: any): Promise<void> {
-  await wbClient.connect();
+
+function startWebSocketServer(): WebSocketServer {
+  const wss = new WebSocketServer({ port: 8080 });
+
+  wss.on("connection", (ws, req) => {
+    const authResult = authenticateUser(req.url);
+
+    if (!authResult.success || !authResult.data?.id) {
+      ws.send("Unauthorized Access");
+      ws.close(1008, "Unauthorized");
+      return;
+    }
+
+    const userId = authResult.data.id;
 
 
-  console.log("redis connected");
+    const oldSocket = userSocketMap.get(userId);
+    if (oldSocket) activeSockets.delete(oldSocket);
 
-  await wbClient.subscribe("bitcoin", (message) => {
-    wss.clients.forEach((clt: WebSocket) => {
-      if (clt.readyState === WebSocket.OPEN) {
-        clt.send(
-          JSON.stringify({
-            type: "tokenPrice",
-            message,
-          }),
-        );
-      }
+    userSocketMap.set(userId, ws);
+    activeSockets.add(ws);
+
+    ws.on("message", (data) => {
+      console.log("Received from client:", data.toString());
     });
+
+    ws.on("close", () => {
+      activeSockets.delete(ws);
+      userSocketMap.delete(userId);
+      console.log(`User ${userId} disconnected`);
+    });
+
+    ws.on("error", (err) => console.error("WebSocket error:", err));
+
+    ws.send("Connected to server ");
   });
-  await wbClient.subscribe("candlePriceChartData", (message) => {
-    wss.clients.forEach((clt: WebSocket) => {
-      if (clt.readyState === WebSocket.OPEN) {
-        clt.send(
-          JSON.stringify({
-            type: "chartData",
-            message,
-          }),
-        );
-      }
-    });
+
+  console.log("WebSocket Server started on port 8080");
+  return wss;
+}
+
+
+async function startRedisSubscriptions() {
+  await redisPublisher.connect();
+  console.log("Redis publisher connected");
+
+  await redisPublisher.subscribe("bitcoin", (message) => {
+    broadcastToAll({ type: "tokenPrice", message });
+  });
+
+  await redisPublisher.subscribe("candlePriceChartData", (message) => {
+    broadcastToAll({ type: "chartData", message });
   });
 }
 
-async function main() {
-  const wss = startWebsocketSever();
+function broadcastToAll(payload: any) {
+  const data = JSON.stringify(payload);
+  activeSockets.forEach((socket) => {
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send(data);
+    }
+  });
+}
 
-  await startRedis(wss);
-  startUpdatedOrderListener(wss);
-  console.log("Websocket and redis are ready to use");
+
+async function startUpdatedOrderListener() {
+  await redisConsumer.connect();
+  console.log("Redis consumer connected");
+
+  while (true) {
+    const response = await redisConsumer.xRead([{ key: "orders:updated", id: "$" }], {
+      BLOCK: 0,
+      COUNT: 1,
+    });
+
+    if (!response) continue;
+    // @ts-ignore
+    const message = response[0].messages[0].message as any;
+    const userId = message.userId;
+
+    const userSocket = userSocketMap.get(userId);
+    if (userSocket && userSocket.readyState === WebSocket.OPEN) {
+      userSocket.send(JSON.stringify({ type: "orderUpdate", order: message }));
+    }
+  }
+}
+
+
+async function main() {
+  startWebSocketServer();
+  await startRedisSubscriptions();
+  startUpdatedOrderListener();
+  console.log("✅ WebSocket + Redis system is up and running!");
 }
 
 main().catch(console.error);

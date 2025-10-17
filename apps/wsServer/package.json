@@ -15,11 +15,14 @@
 		"@repo/redisclient": "workspace:*",
 		"@repo/types": "workspace:*",
 		"@repo/typescript-config": "workspace:*",
+		"@types/jsonwebtoken": "^9.0.10",
 		"@types/ws": "^8.18.1",
 		"concurrently": "^9.2.1",
 		"nodemon": "^3.1.10"
 	},
 	"dependencies": {
+		"dotenv": "^17.2.3",
+		"jsonwebtoken": "^9.0.2",
 		"redis": "^5.8.3",
 		"ws": "^8.18.3"
 	}
