@@ -142,6 +142,7 @@ async function process(price: number) {
 }
 
 
+
 priceEvent.on("priceUpdate", (price) => {
    console.log("Bitcoin price in orderProcessor:", price);
    process(price);

@@ -129,7 +129,7 @@ async function main() {
   startWebSocketServer();
   await startRedisSubscriptions();
   startUpdatedOrderListener();
-  console.log("✅ WebSocket + Redis system is up and running!");
+  console.log(" WebSocket + Redis system is up and running!");
 }
 
 main().catch(console.error);
