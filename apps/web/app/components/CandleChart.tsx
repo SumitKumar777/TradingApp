@@ -1,24 +1,25 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { createChart ,CandlestickSeries} from "lightweight-charts";
 
 export default function CandleChart() {
 	const chartContainerRef = useRef<HTMLDivElement | null>(null);
+	const [interval,setInterval]=useState(5);
 
 	useEffect(() => {
 		const fetchAndRenderChart = async () => {
 			try {
 				// Fetch data
-				const res = await axios.get(
-					"http://localhost:3001/api/chart/candles/5"
-				);
+				const res = await axios.get(`http://localhost:3001/api/chart/candles/${interval}`);
 				const data = res.data.data;
 				console.log(data, "candlestick data");
 
 				// Initialize chart
-          
+
+				
+
 				const chart = createChart(chartContainerRef.current!, {
 					layout: {
 						textColor: "white",
@@ -55,10 +56,32 @@ export default function CandleChart() {
 		};
 
 		fetchAndRenderChart();
-	}, []);
+	}, [interval]);
 
 	return (
 		<div>
+			<div className="flex space-x-2">
+				<button
+					className={`${interval === 5 ? "bg-gray-700" : "bg-grey-500"}`}
+					onClick={() => {
+						if (interval != 5) {
+							setInterval(5);
+						}
+					}}
+				>
+					5 min
+				</button>
+				<button
+					className={`${interval === 15 ? "bg-gray-700" : "bg-grey-500"}`}
+					onClick={() => {
+						if (interval != 15) {
+							setInterval(15);
+						}
+					}}
+				>
+					15 min
+				</button>
+			</div>
 			<h2 style={{ color: "white" }}>Candle Chart</h2>
 			<div ref={chartContainerRef} style={{ width: "100%", height: "400px" }} />
 		</div>
