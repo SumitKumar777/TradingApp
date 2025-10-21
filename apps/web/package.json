@@ -14,6 +14,7 @@
     "@repo/ui": "workspace:*",
     "@tailwindcss/postcss": "^4.1.14",
     "axios": "^1.12.2",
+    "dotenv": "^17.2.3",
     "lightweight-charts": "^5.0.9",
     "next": "^15.5.0",
     "postcss": "^8.5.6",

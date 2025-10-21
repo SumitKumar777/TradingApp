@@ -74,7 +74,7 @@ authRouter.post("/signin", async (req, res) => {
    const reqBody = req.body;
    const parsedReqBody = signInObject.safeParse(reqBody);
    if (!parsedReqBody.success) {
-      return res.status(400).json({ status: "error", message: "invalid signup inputs", error: parsedReqBody.error })
+      return res.status(400).json({ status: "error", message: "invalid signin inputs", error: parsedReqBody.error })
    }
 
 
@@ -106,7 +106,7 @@ authRouter.post("/signin", async (req, res) => {
       const token=jwt.sign({id:foundUser.id,userName:foundUser.username},JWT_SECRET);
 
 
-      return res.status(200).cookie("AuthCookie",token,{maxAge:7*24*60*60*1000,httpOnly:true,secure:false}).json({ status: "success", message: "user created successfully" })
+      return res.status(200).cookie("AuthCookie",token,{maxAge:7*24*60*60*1000,httpOnly:true,secure:false}).json({ status: "success", message: "user signed in  successfully" })
 
    } catch (error) {
       console.log("error in signup", error);

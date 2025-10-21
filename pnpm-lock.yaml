@@ -143,6 +143,9 @@ importers:
       axios:
         specifier: ^1.12.2
         version: 1.12.2
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
       lightweight-charts:
         specifier: ^5.0.9
         version: 5.0.9
