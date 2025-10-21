@@ -53,8 +53,8 @@ async function initSchema() {
     client = await pgPool.connect();
     console.log("client connected in timescaledb");
     await client.query(sql);
-     await client.query(`CALL refresh_continuous_aggregate('five_min_ohlc', NULL, NULL)`);
-     await client.query(`CALL refresh_continuous_aggregate('fifteen_min_ohlc', NULL, NULL)`);
+    await client.query(`CALL refresh_continuous_aggregate('five_min_ohlc', NULL, NULL)`);
+    await client.query(`CALL refresh_continuous_aggregate('fifteen_min_ohlc', NULL, NULL)`);
 
     schemaInitialized = true;
     console.log("Schema initialized successfully");

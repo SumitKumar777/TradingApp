@@ -19,7 +19,7 @@ chartRouter.get("/candles/:interval",async(req,res)=>{
 
    let query;
    if(interval=="1"){
-      query =`select * from price_chart_data`;
+      query =`select * from price_chart_data order by bucket asc`;
    }else if ( interval=="5"){
       query = `select * from five_min_ohlc order by bucket asc`;
    }else if (interval=="15"){
@@ -32,9 +32,25 @@ chartRouter.get("/candles/:interval",async(req,res)=>{
    try{
       client = await pgPool.connect();
       const candleFullData = await client.query(query);
-
+      // { time: '2018-12-23', open: 45.12, high: 53.90, low: 45.12, close: 48.09 },
       const candleData=candleFullData.rows;
-      return res.status(201).json({ status: "success", message: "order details", data: candleData });
+      console.log("hello from candleData");
+
+      const formattedData = candleData.map((element) => ({
+         time: element.bucket.toISOString().split('T')[0],
+         open: Number(element.open),
+         high: Number(element.high),
+         low: Number(element.low),
+         close: Number(element.close),
+      }));
+      const sortedData = formattedData
+         .filter((d, i, arr) => i === 0 || d.time > arr[i - 1]!.time) 
+         .sort((a, b) => a.time - b.time);
+
+         console.log("sortedData",sortedData);
+
+
+      return res.status(201).json({ status: "success", message: "order details", data: sortedData });
 
    } catch (error) {
       console.log("error in getting order details", error);

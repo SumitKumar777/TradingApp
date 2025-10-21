@@ -7,7 +7,7 @@ import jwt, { JsonWebTokenError, JwtPayload } from "jsonwebtoken";
 
 dotenv.config({ path: path.join(__dirname, "../../.env") });
 
-const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key";
+const JWT_SECRET = process.env.JWT_SECRET || "tklashdfnasfd2340234";
 
 
 const redisPublisher: RedisClientType = createClient();
