@@ -28,11 +28,17 @@ userRouter.get("/userdetail",authUser,async(req,res)=>{
          }
       })
       return res.status(200).json({ status: "success", message: " user details", data: userDetail });
-   } catch (error) {
-      
+   } catch (error:unknown) {
+      if (error instanceof Error) {
+         console.log("error in fetching user details", error.message);
+        
+      } else {
+         console.log("Unexpected error in fetching user details", error);
+      }
+      return res.status(500).json({ status: "error", message: "Unexpected error and Failed to fetch user details ", error });
    }
 
-   res.status(200).json({status:"success",message:"user detail"})
+  
 })
 
 
@@ -67,6 +73,32 @@ userRouter.post("/walletdeposit",authUser ,async(req,res)=>{
          return res.status(500).json({ status: "error", message: "Unexpected error and Failed to add balance", error });
       }
    }
+})
+
+userRouter.get("/getbalance", authUser, async (req, res) => {
+   const userId = req.userId;
+
+   try {
+      const userBalance = await prisma.user.findUnique({
+         where: {
+            id: userId
+         },
+         select:{
+            walletBalance:true
+         }
+      })
+      return res.status(200).json({ status: "success", message: " user balance", data: userBalance });
+   } catch (error) {
+      if (error instanceof Error) {
+         console.log("error in fetching user balance", error.message);
+
+      } else {
+         console.log("Unexpected error in fetching user balance", error);
+      }
+      return res.status(500).json({ status: "error", message: "Unexpected error and Failed to fetch balance", error });
+   }
+
+   
 })
 
 

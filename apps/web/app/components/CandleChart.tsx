@@ -11,25 +11,24 @@ export default function CandleChart() {
 	useEffect(() => {
 		const fetchAndRenderChart = async () => {
 			try {
-				// Fetch data
+
 				const res = await axios.get(`http://localhost:3001/api/chart/candles/${interval}`);
 				const data = res.data.data;
 				console.log(data, "candlestick data");
-
-				// Initialize chart
 
 				
 
 				const chart = createChart(chartContainerRef.current!, {
 					layout: {
 						textColor: "white",
+						// @ts-ignore
 						background: { type: "solid", color: "black" },
 					},
 					width: chartContainerRef.current!.clientWidth,
 					height: 400,
 				});
 
-				// Add candlestick series
+
 				const candlestickSeries = chart.addSeries(CandlestickSeries, {
 					upColor: "#26a69a",
 					downColor: "#ef5350",
@@ -40,7 +39,7 @@ export default function CandleChart() {
 				candlestickSeries.setData(data);
 				chart.timeScale().fitContent();
 
-				// Resize chart dynamically
+
 				const handleResize = () => {
 					chart.applyOptions({ width: chartContainerRef.current!.clientWidth });
 				};

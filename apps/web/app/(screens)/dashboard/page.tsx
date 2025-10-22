@@ -7,72 +7,87 @@ import usePrice from "../../store/usePrice";
 import StockPrice from "../../components/StockPrice";
 import PlaceOrder from "../../components/PlaceOrder";
 import OrderDetails from "../../components/OrderDetails";
+import UserBalance from "../../components/UserBalance";
+import useOrder from "../../store/useOrder";
 
-function DashBoard() {   
-   const [socket,setSocket]=useState<WebSocket| null>(null);
-   const setTokenPrice=usePrice((state)=>state.setTokenPrice);
+function DashBoard() {
+	const [socket, setSocket] = useState<WebSocket | null>(null);
+	const setTokenPrice = usePrice((state) => state.setTokenPrice);
+	const addOrder= useOrder((state)=>state.addOrder);
 
-   useEffect(()=>{
+	useEffect(() => {
+		async function connectToWebsocket() {
+			try {
+				const token = (await axios.get("/api/getToken")).data.cookie;
+				console.log(token, "token");
+				if (!token) {
+					throw new Error("Connection failed with websocket no cookie found");
+				}
 
-      async function connectToWebsocket() {
-         try {
-            const token = (await axios.get("/api/getToken")).data.cookie;
-               console.log(token, "token");
-               if (!token) {
-                  throw new Error("Connection failed with websocket no cookie found")
-               }
+				const connection = new WebSocket(`ws://localhost:8080/?token=${token}`);
 
-               const connection = new WebSocket(
-                           `ws://localhost:8080/?token=${token}`
-                        );
+				connection.onopen = () => {
+					console.log("connection established");
+					setSocket(connection);
+				};
 
-               connection.onopen=()=>{
-                  console.log("connection established");
-                  setSocket(connection);
-               }
+				connection.onmessage = (data) => {
 
-               connection.onmessage=(data)=>{
-                  // console.log(data.data);
-                  try {
-                     const parsedData = JSON.parse(data.data);
-                     const parsedMessage=JSON.parse(parsedData.message);
-                     if (parsedData.type === "chartData") {
-                        console.log(parsedMessage.data.k);
-                     }
-                     if (parsedData.type === "tokenPrice") {
+					try {
+						// parse the incoming message payload
+						const parsedData = JSON.parse(data.data);
+						console.log(parsedData,"parsedData ")
+						let parsedMessage;
+						try {
+							parsedMessage = JSON.parse(parsedData.message);
+						} catch {
 
-                              console.log(
-                                 parsedMessage.data.p
-                              );
-                              setTokenPrice(parsedMessage.data.p);
-                  }
-                  } catch (error) {
-                  console.log(data,"data in the catch block",error);
-                  }
-               }
+							parsedMessage = parsedData.message;
+						}
 
-               connection.onerror=(err)=>{
-                  console.log("error in the websocket connection",err);
-               }
-            
+						if (parsedData.type === "orderUpdate") {
+							console.log("orderUpdate",  parsedData.order );
+							addOrder(parsedData.order);
 
-         } catch (error) {
-            console.log("error in connecting to websoket in dashboard",error);
-         }
-      }
 
-      connectToWebsocket()
-   },[])
+						} else if (parsedData.type === "chartData") {
+							console.log(parsedMessage.data.k);
 
-   return ( 
-      <div>
-         hi there from board
-         <StockPrice/>
-         <CandleChart/>
-         <PlaceOrder/>
-         <OrderDetails/>
-      </div>
-    );
+						}else if (parsedData.type === "tokenPrice") {
+
+							setTokenPrice(parsedMessage.data.p);
+						}else{
+					 console.log(parsedData,"else block");
+				  }
+
+					} catch (error) {
+						console.log(data, "data in the catch block", error);
+					}
+				};
+
+				connection.onerror = (err) => {
+					console.log("error in the websocket connection", err);
+				};
+			} catch (error) {
+				console.log("error in connecting to websoket in dashboard", error);
+			}
+		}
+
+		connectToWebsocket();
+	}, []);
+
+	return (
+		<div>
+			<div className="flex justify-between px-3 items-center">
+				<h1>Paapay trade </h1>
+				<UserBalance />
+			</div>
+			<StockPrice />
+			<CandleChart />
+			<PlaceOrder />
+			<OrderDetails />
+		</div>
+	);
 }
 
 export default DashBoard;
