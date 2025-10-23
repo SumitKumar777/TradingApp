@@ -46,14 +46,16 @@ function DashBoard() {
 						}
 
 						if (parsedData.type === "orderUpdate") {
-							console.log("orderUpdate",  parsedData.order );
+
 							addOrder(parsedData.order);
 
 
 						} else if (parsedData.type === "chartData") {
+							
 							console.log(parsedMessage.data.k);
 
 						}else if (parsedData.type === "tokenPrice") {
+
 
 							setTokenPrice(parsedMessage.data.p);
 						}else{
