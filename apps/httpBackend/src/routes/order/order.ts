@@ -192,13 +192,16 @@ orderRouter.get("/orderhistory",authUser,async(req,res)=>{
          },
          include:{
             orders:{
+               where:{
+                  status:"Closed"
+               },
                orderBy:{
-                  orderClosedAt:"asc"
+                  orderClosedAt:"desc"
                }
             }
          }
       })
-      return res.status(200).json({status:"succes",message:`order history for this user ${userId}`,data:orderHistory?.orders});
+      return res.status(200).json({status:"success",message:`order history for this user ${userId}`,data:orderHistory?.orders});
    } catch (error) {
       console.log("error in getting the order history ",error);
       return res.status(500).json({status:"failed",message:"Internal server error in getting the order history",error})

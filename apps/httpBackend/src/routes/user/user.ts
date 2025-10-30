@@ -31,7 +31,6 @@ userRouter.get("/userdetail",authUser,async(req,res)=>{
    } catch (error:unknown) {
       if (error instanceof Error) {
          console.log("error in fetching user details", error.message);
-        
       } else {
          console.log("Unexpected error in fetching user details", error);
       }

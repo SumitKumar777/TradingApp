@@ -107,7 +107,7 @@ async function startUpdatedOrderListener() {
   console.log("Redis consumer connected");
 
   while (true) {
-    const response = await redisConsumer.xRead([{ key: "orders:updated", id: "$" }], {
+    const response = await redisConsumer.xRead([{ key: "orders:updated", id: "$" },{key:"orders:closed",id:"$"}], {
       BLOCK: 0,
       COUNT: 1,
     });
@@ -119,7 +119,12 @@ async function startUpdatedOrderListener() {
 
     const userSocket = userSocketMap.get(userId);
     if (userSocket && userSocket.readyState === WebSocket.OPEN) {
-      userSocket.send(JSON.stringify({ type: "orderUpdate", order: message }));
+      if (response[0]!.name ==="orders:updated"){
+        userSocket.send(JSON.stringify({ type: "orderUpdate", order: message }));
+      }else{
+        userSocket.send(JSON.stringify({ type: "orderClosed", order: message }));
+      }
+     
     }
   }
 }

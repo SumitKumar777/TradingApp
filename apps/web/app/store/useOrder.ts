@@ -1,7 +1,7 @@
  
 
  import {create} from "zustand";
-import OrderDetails from "../components/OrderDetails";
+
 
 // amount: "132633.1263";
 // closingReason: "Automatic";
@@ -45,9 +45,11 @@ export interface OrderTypeProp {
    updatedAt: string;
 }
 
+
 interface OrderStoreType {
    orderDetails: Map<string,OrderTypeProp>;
    addOrder: (orders: OrderTypeProp) => void; 
+   closeOrder:(orderId:string)=>void;
 }
 
 
@@ -61,6 +63,15 @@ const useOrder = create<OrderStoreType>((set)=>({
 
          return { orderDetails: updated };
       }),
+   closeOrder:(orderId:string)=>set((state)=>{
+      console.log("in the closeOrder function ")
+      const updated=new Map(state.orderDetails);
+      updated.delete(orderId);
+      console.log("after deletion in close Order ");
+
+      return {orderDetails:updated};
+   })
+
 
 }))
 

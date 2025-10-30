@@ -34,6 +34,11 @@ export default function UserBalance() {
 		const formData = new FormData(form);
 		const deposit = formData.get("deposit");
 
+		if(Number(deposit)<=0){
+			console.log('invalid amount deposit input');
+			return ;
+		}
+
 		try {
 			await axios.post(
 				"http://localhost:3001/api/user/walletdeposit",
@@ -53,7 +58,7 @@ export default function UserBalance() {
 			{loading ? (
 				<p>Loading balance...</p>
 			) : error ? (
-				<p style={{ color: "red" }}>{error}</p>
+				<p className="text-red-500">{error}</p>
 			) : (
 				<p>Balance: $ {balance ?? 0}</p>
 			)}

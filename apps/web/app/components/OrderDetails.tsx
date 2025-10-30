@@ -4,29 +4,31 @@
 import { useState } from "react";
 import useOrder from "../store/useOrder";
 
-// amount: "132633.1263";
-// closingReason: "Automatic";
-// entryPrice: "107831.81";
-// exitPrice: "";
-// id: "61";
-// orderClosedAt: "";
-// orderCreatedAt: "2025-10-22T07:19:17.339Z";
-// pnl: "72.84060000000143";
-// position: "Long";
-// quantity: "1.23";
-// status: "Open";
-// stopLoss: "";
-// takeProfit: "10840";
-// type: "Market";
-// updatedAt: "2025-10-22T07:19:17.339Z";
-// userId: "8ff01e0d-f71d-4247-869f-01fa81bcc3bb";
+import axios from "axios";
+import ClosedOrder from "./CloseOrder";
 
 
 
 
 function OrderDetails() {
-   const OrderDetails=useOrder((state)=>state.orderDetails);
+   const OrderDetail=useOrder((state)=>state.orderDetails);
    const [orderState,setOrderState]=useState(true);
+
+	const closedOrder=async(orderId:string)=>{
+		try {
+			console.log("closed Order function is called");
+			const closeOrderResponse = await axios.post(
+				"http://localhost:3001/api/order/closeorder",
+				{ id: orderId },
+				{ withCredentials: true }
+			);
+			console.log("closeOrderResponse",closeOrderResponse)
+
+		} catch (error) {
+			console.log("error in closing the order",error)
+		}
+
+	}
    return (
 			<div>
 				<div className="border-2 text-xl">
@@ -48,10 +50,24 @@ function OrderDetails() {
 							}
 						}}
 					>
-                  closed Order
+						closed Order
 					</button>
 				</div>
-            {orderState ?<div></div>:<div>hi from closed order</div>}
+				{orderState ? (
+					<div>
+						{Array.from(OrderDetail.values()).map((order) => (
+							<div key={order.id} className="flex space-x-4">
+								<p>{order.id}</p>
+								<p>{order.amount}</p>
+								<p>{order.pnl}</p>
+								<p>{order.userId}</p>
+								<button type="button" onClick={()=>closedOrder(order.id)}>Close</button>
+							</div>
+						))}
+					</div>
+				) : (
+					<ClosedOrder/>
+				)}
 			</div>
 		);
 }

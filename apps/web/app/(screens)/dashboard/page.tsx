@@ -14,6 +14,7 @@ function DashBoard() {
 	const [socket, setSocket] = useState<WebSocket | null>(null);
 	const setTokenPrice = usePrice((state) => state.setTokenPrice);
 	const addOrder= useOrder((state)=>state.addOrder);
+	const closeOrder=useOrder((state)=>state.closeOrder);
 
 	useEffect(() => {
 		async function connectToWebsocket() {
@@ -36,7 +37,7 @@ function DashBoard() {
 					try {
 						// parse the incoming message payload
 						const parsedData = JSON.parse(data.data);
-						console.log(parsedData,"parsedData ")
+						// console.log(parsedData,"parsedData ")
 						let parsedMessage;
 						try {
 							parsedMessage = JSON.parse(parsedData.message);
@@ -46,19 +47,25 @@ function DashBoard() {
 						}
 
 						if (parsedData.type === "orderUpdate") {
+							console.log(parsedData);
 
 							addOrder(parsedData.order);
 
 
 						} else if (parsedData.type === "chartData") {
 							
-							console.log(parsedMessage.data.k);
+							// console.log(parsedMessage.data.k);
 
 						}else if (parsedData.type === "tokenPrice") {
 
 
 							setTokenPrice(parsedMessage.data.p);
-						}else{
+						}else if(parsedData.type==="orderClosed"){
+							console.log("closedOrder in frontend",parsedData);
+							closeOrder(parsedData.order.id);
+
+						}
+						else{
 					 console.log(parsedData,"else block");
 				  }
 

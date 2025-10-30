@@ -13,6 +13,7 @@ type PositionType = "Long" | "Short";
 type OrderStatus = "Open" | "Closed";
 type ClosingReasonType = "Automatic" | "Manual";
 type OrderExecutionType = "Market" | "Limit";
+type ClosingReason="Manual"|"Automatic";
 
 interface OrderType {
    id: number;
@@ -56,11 +57,10 @@ function orderToRedisFields(order: OrderType): Record<string, string> {
 }
 
 
-async function closeOrder(order: OrderType, price: number) {
+async function closeOrder(order: OrderType, price: number, clsReason: ClosingReason) {
    allOpenOrders.delete(order);
    orderMap.delete(order.id);
    closeingOrderId = closeingOrderId.filter(id => id != order.id);
-
 
 
    const pnl = calculatePnl(order.entryPrice, price, order.amount, order.position);
@@ -73,7 +73,18 @@ async function closeOrder(order: OrderType, price: number) {
                id:order.id
             }
          })
+
          if(orderState?.status==="Closed")return orderState;
+
+
+         await tx.user.update({
+            where:{
+               id:order.userId
+            },
+            data:{
+               walletBalance: new Decimal(pnl).plus(new Decimal(order.entryPrice))
+            }
+         })
 
          return await tx.orders.update({
             where:{
@@ -81,6 +92,7 @@ async function closeOrder(order: OrderType, price: number) {
             },data:{
                status:"Closed",
                pnl: new Decimal(pnl),
+               closingReason:clsReason,
                exitPrice:price,
                orderClosedAt:new Date()
             }
@@ -115,7 +127,13 @@ async function process(price: number) {
       let updatedOrder: OrderType | null = null;
 
       if (hitTakeProfit || hitStopLoss) {
-         updatedOrder = await closeOrder(order, price);
+         const closedOrder = await closeOrder(order, price,"Automatic");
+         if (closedOrder) {
+            const redisData = orderToRedisFields(closedOrder);
+            await orderUpdateProducer.xAdd("orders:closed", "*", redisData);
+            console.log("Order closed -> Stream:", closedOrder.id);
+         }
+
       } else {
          const pnl = calculatePnl(order.entryPrice, price, order.amount, order.position);
          order.pnl = pnl;
@@ -135,7 +153,12 @@ async function process(price: number) {
          const closingOrderDetails = orderMap.get(orderId);
 
          if (closingOrderDetails && Object.keys(closingOrderDetails).length > 0) {
-            await closeOrder(closingOrderDetails, price);
+            const closedOrder = await closeOrder(closingOrderDetails, price,"Manual");
+            if (closedOrder) {
+               const redisData = orderToRedisFields(closedOrder);
+               await orderUpdateProducer.xAdd("orders:closed", "*", redisData);
+               console.log("Order closed -> Stream:", closedOrder.id);
+            }
          }
       }
    }
