@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import {
 	Form,
 	FormControl,
-	FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
@@ -44,14 +43,13 @@ type PlaceOrderType = z.infer<typeof placeOrderSchema>;
 function PlaceOrder() {
 	const [state, setState] = useState(true);
 	const tokenPrice = usePrice((state) => state.tokenPrice);
-	const {
-		register,
-		handleSubmit,
-		formState: { errors },
-		setError,
-		reset
-	} = useForm<PlaceOrderType>({
+	const form = useForm<PlaceOrderType>({
 		resolver: zodResolver(placeOrderSchema),
+		defaultValues: {
+			quantity: "",
+			takeProfit: "",
+			stopLoss: "",
+		},
 	});
 
 	const placeOrderSubmit = async (
@@ -66,14 +64,14 @@ function PlaceOrder() {
 			if(type==="long"){
 
 			if (takeprft && takeprft < tokenPrice) {
-				setError("takeProfit",{
+				form.setError("takeProfit",{
 					type: "manual",
 					message: "For buy order takeProfit should be greater than the currentPrice",
 				});
 				return;
 			}
 			if (stopls && stopls > tokenPrice) {
-				setError("takeProfit", {
+				form.setError("takeProfit", {
 					type: "manual",
 					message:
 						"For buy order stopLoss should be lesser than the currentPrice",
@@ -82,7 +80,7 @@ function PlaceOrder() {
 			}
 			}else{
 				if (takeprft && takeprft > tokenPrice) {
-					setError("takeProfit", {
+					form.setError("takeProfit", {
 						type: "manual",
 						message:
 							"For Sell order takeProfit should be lesser than the currentPrice",
@@ -90,7 +88,7 @@ function PlaceOrder() {
 					return;
 				}
 				if (stopls && stopls < tokenPrice) {
-					setError("takeProfit", {
+					form.setError("takeProfit", {
 						type: "manual",
 						message:
 							"For Sell order stopLoss should be greater than the currentPrice",
@@ -114,7 +112,7 @@ function PlaceOrder() {
 				{ withCredentials: true }
 			);
 			console.log("placeOrderRequest", placeResq);
-			reset({
+			form.reset({
 				quantity: "",
 				takeProfit: "",
 				stopLoss: "",
@@ -145,56 +143,67 @@ function PlaceOrder() {
 				</Button>
 			</div>
 
-			<form
-				onSubmit={handleSubmit((data) =>
-					placeOrderSubmit(data, state ? "long" : "short")
-				)}
-				className={`border-1 p-4 ${
-					state ? "border-green-300" : "border-red-500"
-				}`}
-			>
-				<label>Enter quantity</label>
-				<br />
-				<input
-					{...register("quantity")}
-					placeholder="Quantity"
-					onInput={handleNumericInput}
-				/>
-				{errors.quantity && (
-					<p className="text-red-500">{errors.quantity.message}</p>
-				)}
-				<br />
-
-				<label>Take Profit</label>
-				<br />
-
-				<input
-					{...register("takeProfit")}
-					placeholder="Take Profit"
-					onInput={handleNumericInput}
-				/>
-				{errors.takeProfit && (
-					<p className="text-red-500">{errors.takeProfit.message}</p>
-				)}
-				<br />
-
-				<label>Stop Loss</label>
-				<br />
-
-				<input
-					{...register("stopLoss")}
-					placeholder="Stop Loss"
-					onInput={handleNumericInput}
-				/>
-				{errors.stopLoss && (
-					<p className="text-red-500">{errors.stopLoss.message}</p>
-				)}
-				<br />
-
-				<Button type="submit">
-					{state ? "Place Buy Order" : "Place Sell Order"}
-				</Button>
-			</form>
+			<Form {...form}>
+				<form
+					onSubmit={form.handleSubmit((data) =>
+						placeOrderSubmit(data, state ? "long" : "short")
+					)}
+					className="space-y-8"
+				>
+					<FormField
+						control={form.control}
+						name="quantity"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Quantity</FormLabel>
+								<FormControl>
+									<Input
+										placeholder="Quantity"
+										{...field}
+										onInput={handleNumericInput}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+					<FormField
+						control={form.control}
+						name="takeProfit"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Take Profit</FormLabel>
+								<FormControl>
+									<Input
+										placeholder="Take Profit"
+										{...field}
+										onInput={handleNumericInput}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+					<FormField
+						control={form.control}
+						name="stopLoss"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Stop Loss</FormLabel>
+								<FormControl>
+									<Input
+										placeholder="Stop Loss"
+										{...field}
+										onInput={handleNumericInput}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+					<Button type="submit">Place {state ? "Buy" : "Sell"} Order</Button>
+				</form>
+			</Form>
 		</div>
 	);
 }
