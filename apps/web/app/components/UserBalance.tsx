@@ -19,7 +19,7 @@ import { useUser } from "../store/useUser";
  };
 
 export default function UserBalance() {
-
+	
 	const balnc = useUser((state) => state.balance);
 	const setBalnc = useUser((state) => state.setBalance);
 
