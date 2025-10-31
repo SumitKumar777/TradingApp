@@ -16,6 +16,8 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { fetchBalance } from "./UserBalance";
+import { useUser } from "../store/useUser";
 
 const placeOrderSchema = z.object({
 	quantity: z
@@ -43,6 +45,8 @@ type PlaceOrderType = z.infer<typeof placeOrderSchema>;
 function PlaceOrder() {
 	const [state, setState] = useState(true);
 	const tokenPrice = usePrice((state) => state.tokenPrice);
+		const setBalance=useUser((state)=>state.setBalance);
+		
 	const form = useForm<PlaceOrderType>({
 		resolver: zodResolver(placeOrderSchema),
 		defaultValues: {
@@ -112,6 +116,8 @@ function PlaceOrder() {
 				{ withCredentials: true }
 			);
 			console.log("placeOrderRequest", placeResq);
+			const updatedBalance=await fetchBalance();
+										setBalance(updatedBalance);
 			form.reset({
 				quantity: "",
 				takeProfit: "",

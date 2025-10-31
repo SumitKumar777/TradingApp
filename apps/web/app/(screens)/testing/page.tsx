@@ -1,35 +1,87 @@
 "use client";
+import React from "react";
+import {
+	useReactTable,
+	createColumnHelper,
+	flexRender,
+	getCoreRowModel,
+} from "@tanstack/react-table";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import {z }from "zod";
-import { Button } from "@/components/ui/button";
+type Person = {
+	firstName: string;
+	lastName: string;
+	age: number;
+};
 
-const demoType=z.object({
-   name:z.string().min(4,{message:"too short for name"}),
-   email:z.email()
-})
+const data: Person[] = [
+	{ firstName: "Sumit", lastName: "Kumar", age: 23 },
+	{ firstName: "Riya", lastName: "Sharma", age: 25 },
+];
 
-export default function MyForm() {
+const columnHelper = createColumnHelper<Person>();
 
+const columns = [
+	columnHelper.accessor("firstName", {
+		header: "First Name",
+		cell: (info) => info.getValue(),
+	}),
+	columnHelper.accessor("lastName", {
+		header: "Last Name",
+		cell: (info) => info.getValue(),
+	}),
+	columnHelper.accessor("age", {
+		header: "Age",
+		cell: (info) => <i>{info.getValue()}</i>,
+	}),
+	columnHelper.display({
+		id: "actions",
+		header: "Actions",
+		cell: (props) => (
+			<button
+				onClick={() => alert(`User: ${props.row.original.firstName}`)}
+				className="px-2 py-1 bg-blue-500 text-white rounded"
+			>
+				View
+			</button>
+		),
+	}),
+];
 
-	const {
-		register,
-		handleSubmit,
-		formState: { errors },
-	} = useForm({ resolver: zodResolver(demoType) });
-
-	const onSubmit = (data:any) => console.log(data);
+export default function TableExample() {
+	const table = useReactTable({
+		data,
+		columns,
+		getCoreRowModel: getCoreRowModel(),
+	});
 
 	return (
-		<form onSubmit={handleSubmit(onSubmit)}>
-			<input {...register("name")} placeholder="Name" />
-			{errors.name && <p>{errors.name.message}</p>}
-			<br />
-			<input {...register("email")} placeholder="Email" />
-			{errors.email && <p>{errors.email.message}</p>}
-			<br />
-			<Button className="bg-amber-200 hover:bg-red-600">Submit</Button>
-		</form>
+		<table className="border-collapse border border-gray-300 ">
+			<thead>
+				{table.getHeaderGroups().map((headerGroup) => (
+					<tr key={headerGroup.id}>
+						{headerGroup.headers.map((header) => (
+							<th key={header.id} className="border border-gray-300 p-2 text-xl">
+								{flexRender(
+									header.column.columnDef.header,
+									header.getContext()
+								)}
+							</th>
+						))}
+					</tr>
+				))}
+			</thead>
+
+			<tbody>
+				{table.getRowModel().rows.map((row) => (
+					<tr key={row.id}>
+						{row.getVisibleCells().map((cell) => (
+							<td key={cell.id} className="border border-gray-300 p-2">
+								{flexRender(cell.column.columnDef.cell, cell.getContext())}
+							</td>
+						))}
+					</tr>
+				))}
+			</tbody>
+		</table>
 	);
 }
