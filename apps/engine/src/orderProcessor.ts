@@ -82,7 +82,9 @@ async function closeOrder(order: OrderType, price: number, clsReason: ClosingRea
                id:order.userId
             },
             data:{
-               walletBalance: new Decimal(pnl).plus(new Decimal(order.entryPrice))
+               walletBalance: {
+                  increment: new Decimal(pnl).plus(new Decimal(order.entryPrice))
+               }
             }
          })
 
