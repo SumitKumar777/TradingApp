@@ -3,9 +3,16 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import  {OrderTypeProp} from "../store/useOrder"
+import {
+	useReactTable,
+	createColumnHelper,
+	flexRender,
+	getCoreRowModel,
+} from "@tanstack/react-table";
 
 
-// amount: "110007.37";
+
+
 // closingReason: "Automatic";
 // entryPrice: "110007.37";
 // exitPrice: "110016.56";
@@ -29,10 +36,72 @@ type ClosedOrderDetailsType = Omit<OrderTypeProp, "id" | "amount" > & {
 };
 
 
+
+
+
+const columnHelper=createColumnHelper<ClosedOrderDetailsType>();
+
+
+const columns = [
+	columnHelper.accessor("id", {
+		header: "Order Id",
+		cell: (info) => info.getValue(),
+	}),
+	columnHelper.accessor("position", {
+		header: "Position",
+		cell: (info) => info.getValue(),
+	}),
+
+	columnHelper.accessor("quantity", {
+		header: "Quantity",
+		cell: (info) => info.getValue(),
+	}),
+	columnHelper.accessor("entryPrice", {
+		header: "Entry Price",
+		cell: (info) => info.getValue(),
+	}),
+	columnHelper.accessor("pnl", {
+		header: "P&L",
+		cell: (info) => info.getValue(),
+	}),
+	columnHelper.accessor("takeProfit", {
+		header: "Take Profit",
+		cell: (info) => info.getValue() ?? "Null",
+	}),
+	columnHelper.accessor("stopLoss", {
+		header: " Stop Loss",
+		cell: (info) => info.getValue() ?? "Null",
+	}),
+	columnHelper.accessor("exitPrice", {
+		header: " Exit Price",
+		cell: (info) => info.getValue(),
+	}),
+	columnHelper.accessor("closingReason", {
+		header: " Closing Type ",
+		cell: (info) => info.getValue(),
+	}),
+	columnHelper.accessor("orderCreatedAt", {
+		header: "Creation Time",
+		cell: (info) => info.getValue(),
+	}),
+	columnHelper.accessor("orderClosedAt", {
+		header: "Closing Time",
+		cell: (info) => info.getValue(),
+	}),
+];
+
+
+
 function ClosedOrder() {
+
    const [loading,setLoading]=useState(true);
-   const [closeOrder,setClosedOrder]=useState<ClosedOrderDetailsType[]|null>(null);
+   const [data,setClosedOrderData]=useState<ClosedOrderDetailsType[]>([]);
    const [error,setError]=useState<string|null>(null);
+   const table = useReactTable({
+         data,
+         columns,
+         getCoreRowModel: getCoreRowModel(),
+      });
 
    useEffect(()=>{
 
@@ -46,7 +115,7 @@ function ClosedOrder() {
 				console.log("closedOrderData", fetchClosedOrderData.data);
 
            if(fetchClosedOrderData.data.status==="success"){
-             setClosedOrder(fetchClosedOrderData.data.data);
+             setClosedOrderData(fetchClosedOrderData.data.data);
            }
 
 
@@ -62,30 +131,45 @@ function ClosedOrder() {
    if(loading){
       return <div>Loading...</div>
    }
-    if (error) {
+   if (error) {
 			return <div>Error while fetching the details {error}</div>;
 		}
 
 
+
    return (
 			<>
-				{closeOrder && closeOrder.length > 0 ? (
-					<div>
-						{closeOrder.map((order) => (
-							<div key={order.id} className="flex space-x-4">
-                        <p>{order.id}</p>
-								<p>{order.quantity}</p>
-								<p>{order.pnl}</p>
-								<p>{order.position}</p>
-								<p>{order.orderCreatedAt}</p>
-								<p>{order.orderClosedAt}</p>
-                        
-							</div>
+				<table className="border-collapse border border-gray-300 w-full ">
+					<thead>
+						{table.getHeaderGroups().map((headerGroup) => (
+							<tr key={headerGroup.id}>
+								{headerGroup.headers.map((header) => (
+									<th
+										key={header.id}
+										className="border border-gray-300 p-2 text-xl"
+									>
+										{flexRender(
+											header.column.columnDef.header,
+											header.getContext()
+										)}
+									</th>
+								))}
+							</tr>
 						))}
-					</div>
-				) : (
-					<h1>NO past Order for this user</h1>
-				)}
+					</thead>
+
+					<tbody>
+						{table.getRowModel().rows.map((row) => (
+							<tr key={row.id}>
+								{row.getVisibleCells().map((cell) => (
+									<td key={cell.id} className={`border border-gray-300 p-2`}>
+										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+									</td>
+								))}
+							</tr>
+						))}
+					</tbody>
+				</table>
 			</>
 		);
 }

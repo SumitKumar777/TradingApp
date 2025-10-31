@@ -2,19 +2,35 @@
 
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-
-export default function UserBalance() {
-	const [balance, setBalance] = useState<number | null>(null);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
+import { useUser } from "../store/useUser";
 
 
-	const fetchBalance = async () => {
+
+ export const fetchBalance = async () => {
 		try {
 			const res = await axios.get("http://localhost:3001/api/user/getbalance", {
 				withCredentials: true,
 			});
-			setBalance(res.data.data.walletBalance);
+			return res.data.data.walletBalance;
+		} catch (err) {
+			console.log("error while fetching balance", err);
+			return err;
+		}
+ };
+
+export default function UserBalance() {
+
+	const balnc = useUser((state) => state.balance);
+	const setBalnc = useUser((state) => state.setBalance);
+
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+
+
+	  const loadBalance = async () => {
+		try {
+			const res = await fetchBalance();
+			setBalnc(res);
 		} catch (err) {
          console.log("error while fetching balance",err);
 			setError("Failed to fetch balance");
@@ -24,7 +40,7 @@ export default function UserBalance() {
 	};
 
 	useEffect(() => {
-		fetchBalance();
+		loadBalance();
 	}, []);
 
 
@@ -46,7 +62,8 @@ export default function UserBalance() {
 				{ withCredentials: true }
 			);
 
-			await fetchBalance();
+			const updatedBalance=await fetchBalance();
+			setBalnc(updatedBalance);
 			form.reset();
 		} catch (err) {
 			console.log("Error while adding money:", err);
@@ -60,15 +77,17 @@ export default function UserBalance() {
 			) : error ? (
 				<p className="text-red-500">{error}</p>
 			) : (
-				<p>Balance: $ {balance ?? 0}</p>
+				<p>Balance: $ {balnc ?? 0}</p>
 			)}
 
 			<form onSubmit={handleAddMoney} className="border-2">
 				<label htmlFor="deposit">Add Money:</label>
-            <br />
+				<br />
 				<input type="number" id="deposit" name="deposit" className="border-1" />
-            <br />
-				<button type="submit" className="">Add</button>
+				<br />
+				<button type="submit" className="">
+					Add
+				</button>
 			</form>
 		</div>
 	);

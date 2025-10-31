@@ -7,14 +7,16 @@ import usePrice from "../../store/usePrice";
 import StockPrice from "../../components/StockPrice";
 import PlaceOrder from "../../components/PlaceOrder";
 import OrderDetails from "../../components/OrderDetails";
-import UserBalance from "../../components/UserBalance";
+import UserBalance, { fetchBalance } from "../../components/UserBalance";
 import useOrder from "../../store/useOrder";
+import { useUser } from "../../store/useUser";
 
 function DashBoard() {
 	const [socket, setSocket] = useState<WebSocket | null>(null);
 	const setTokenPrice = usePrice((state) => state.setTokenPrice);
 	const addOrder= useOrder((state)=>state.addOrder);
 	const closeOrder=useOrder((state)=>state.closeOrder);
+	const setBalance=useUser((state)=>state.setBalance);
 
 	useEffect(() => {
 		async function connectToWebsocket() {
@@ -32,7 +34,7 @@ function DashBoard() {
 					setSocket(connection);
 				};
 
-				connection.onmessage = (data) => {
+				connection.onmessage = async(data) => {
 
 					try {
 						// parse the incoming message payload
@@ -62,6 +64,8 @@ function DashBoard() {
 							setTokenPrice(parsedMessage.data.p);
 						}else if(parsedData.type==="orderClosed"){
 							console.log("closedOrder in frontend",parsedData);
+							const updatedBalance=await fetchBalance();
+							setBalance(updatedBalance);
 							closeOrder(parsedData.order.id);
 
 						}
