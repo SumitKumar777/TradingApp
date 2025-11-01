@@ -3,25 +3,13 @@ import prisma from "@repo/db";
 import z, { email } from "zod";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { signUpObject , signInObject } from "@repo/types"
+
 
 export const JWT_SECRET = "tklashdfnasfd2340234#20934";
 const authRouter:Router=Router();
 
-// Zod object;
-const signUpObject=z.object({
-   name:z.string(),
-   email:z.email(),
-   password:z.string().min(6,{message:"too short minimum should be 6 letters"}).max(14,{message:"too long maximum should be 14 character "})
-})
 
-const signInObject = z.object({
-   email: z.email(),
-   password: z.string().min(6, { message: "too short minimum should be 6 letters" }).max(14, { message: "too long maximum should be 14 character " })
-})
-
-
-
-// utility functions
 
 async function hash(plain:string){
    const saltRounds=12;

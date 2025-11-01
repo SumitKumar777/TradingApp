@@ -1,9 +1,32 @@
 "use client";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import {
+	Form,
+	FormItem,
+	FormLabel,
+	FormControl,
+	FormDescription,
+	FormMessage,
+	FormField,
+} from "@/components/ui/form";
+
+import { signInObject, SigninType } from "@repo/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+
+
 
 export default function Signin() {
 	const router = useRouter();
+		const form=useForm<SigninType>({resolver:zodResolver(signInObject),
+			defaultValues:{
+
+				email:"",
+				password:""
+			}
+		});
+	
 
 	const handleSignin = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();

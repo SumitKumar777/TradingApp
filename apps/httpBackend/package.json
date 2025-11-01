@@ -15,8 +15,10 @@
 		"@repo/db": "workspace:*",
 		"@repo/redisclient": "workspace:*",
 		"@repo/timescaledb": "workspace:*",
+		"@repo/types":"workspace:*",
 		"@types/cors": "^2.8.19",
 		"@types/express": "^5.0.3",
+
 		"cookie-parser": "^1.4.7",
 		"cors": "^2.8.5",
 		"decimal.js": "^10.6.0",
@@ -25,7 +27,6 @@
 		"zod": "^4.1.12"
 	},
 	"devDependencies": {
-		"@repo/types": "workspace:*",
 		"@repo/typescript-config": "workspace:*",
 		"@types/bcrypt": "^6.0.0",
 		"@types/cookie-parser": "^1.4.9",

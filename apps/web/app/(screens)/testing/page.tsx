@@ -1,87 +1,72 @@
 "use client";
-import React from "react";
+
+import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+import { Button } from "@/components/ui/button";
 import {
-	useReactTable,
-	createColumnHelper,
-	flexRender,
-	getCoreRowModel,
-} from "@tanstack/react-table";
+	Form,
+	FormControl,
+	FormDescription,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 
-type Person = {
-	firstName: string;
-	lastName: string;
-	age: number;
-};
+const formSchema = z.object({
+	name_0541619557: z.string().min(1),
+});
 
-const data: Person[] = [
-	{ firstName: "Sumit", lastName: "Kumar", age: 23 },
-	{ firstName: "Riya", lastName: "Sharma", age: 25 },
-];
-
-const columnHelper = createColumnHelper<Person>();
-
-const columns = [
-	columnHelper.accessor("firstName", {
-		header: "First Name",
-		cell: (info) => info.getValue(),
-	}),
-	columnHelper.accessor("lastName", {
-		header: "Last Name",
-		cell: (info) => info.getValue(),
-	}),
-	columnHelper.accessor("age", {
-		header: "Age",
-		cell: (info) => <i>{info.getValue()}</i>,
-	}),
-	columnHelper.display({
-		id: "actions",
-		header: "Actions",
-		cell: (props) => (
-			<button
-				onClick={() => alert(`User: ${props.row.original.firstName}`)}
-				className="px-2 py-1 bg-blue-500 text-white rounded"
-			>
-				View
-			</button>
-		),
-	}),
-];
-
-export default function TableExample() {
-	const table = useReactTable({
-		data,
-		columns,
-		getCoreRowModel: getCoreRowModel(),
+export default function MyForm() {
+	const form = useForm<z.infer<typeof formSchema>>({
+		resolver: zodResolver(formSchema),
+		defaultValues: {
+			name_0541619557: "", 
+		},
 	});
 
-	return (
-		<table className="border-collapse border border-gray-300 ">
-			<thead>
-				{table.getHeaderGroups().map((headerGroup) => (
-					<tr key={headerGroup.id}>
-						{headerGroup.headers.map((header) => (
-							<th key={header.id} className="border border-gray-300 p-2 text-xl">
-								{flexRender(
-									header.column.columnDef.header,
-									header.getContext()
-								)}
-							</th>
-						))}
-					</tr>
-				))}
-			</thead>
+	function onSubmit(values: z.infer<typeof formSchema>) {
+		try {
+			console.log(values);
+			toast(
+				<pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+					<code className="text-white">{JSON.stringify(values, null, 2)}</code>
+				</pre>
+			);
+		} catch (error) {
+			console.error("Form submission error", error);
+			toast.error("Failed to submit the form. Please try again.");
+		}
+	}
 
-			<tbody>
-				{table.getRowModel().rows.map((row) => (
-					<tr key={row.id}>
-						{row.getVisibleCells().map((cell) => (
-							<td key={cell.id} className="border border-gray-300 p-2">
-								{flexRender(cell.column.columnDef.cell, cell.getContext())}
-							</td>
-						))}
-					</tr>
-				))}
-			</tbody>
-		</table>
+	return (
+		<Form {...form}>
+			<form
+				onSubmit={form.handleSubmit(onSubmit)}
+				className="space-y-8 max-w-3xl mx-auto py-10"
+			>
+				<FormField
+					control={form.control}
+					name="name_0541619557"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>Username</FormLabel>
+							<FormControl>
+								<Input placeholder="shadcn" type=""  {...field} />
+							</FormControl>
+							<FormDescription>
+								This is your public display name.
+							</FormDescription>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
+				<Button type="submit">Submit</Button>
+			</form>
+		</Form>
 	);
 }
