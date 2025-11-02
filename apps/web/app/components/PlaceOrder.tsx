@@ -207,6 +207,7 @@ function PlaceOrder({className}:{className:string}) {
 							</FormItem>
 						)}
 					/>
+					
 					<FormField
 						control={form.control}
 						name="stopLoss"

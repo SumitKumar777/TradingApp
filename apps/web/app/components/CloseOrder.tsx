@@ -10,6 +10,16 @@ import {
 	getCoreRowModel,
 } from "@tanstack/react-table";
 
+import {
+	Pagination,
+	PaginationContent,
+	PaginationEllipsis,
+	PaginationItem,
+	PaginationLink,
+	PaginationNext,
+	PaginationPrevious,
+} from "@/components/ui/pagination";
+
 
 
 
@@ -118,35 +128,38 @@ function ClosedOrder() {
    const [loading,setLoading]=useState(true);
    const [data,setClosedOrderData]=useState<ClosedOrderDetailsType[]>([]);
    const [error,setError]=useState<string|null>(null);
+	const [page,setPage]=useState<number>(1);
    const table = useReactTable({
          data,
          columns,
          getCoreRowModel: getCoreRowModel(),
       });
 
-   useEffect(()=>{
 
-      async function fetchCloseOrder(){
-         try {
-            const fetchClosedOrderData=await axios.get("http://localhost:3001/api/order/orderhistory",{
-               withCredentials:true
-            })
-            setLoading(false);
+	 
+
+   useEffect(()=>{
+		async function fetchCloseOrder() {
+			try {
+				const fetchClosedOrderData = await axios.get(
+					`http://localhost:3001/api/order/orderhistory?page=${page}`,
+					{
+						withCredentials: true,
+					}
+				);
+				setLoading(false);
 				console.log("closedOrderData", fetchClosedOrderData.data);
 
-           if(fetchClosedOrderData.data.status==="success"){
-             setClosedOrderData(fetchClosedOrderData.data.data);
-           }
-
-
-         } catch (error) {
-            console.log("error in the fetching the order ",error);
-            setError(JSON.stringify(error));
-         }
-      }
-
+				if (fetchClosedOrderData.data.status === "success") {
+					setClosedOrderData(fetchClosedOrderData.data.data);
+				}
+			} catch (error) {
+				console.log("error in the fetching the order ", error);
+				setError(JSON.stringify(error));
+			}
+		}
       fetchCloseOrder()
-   },[])
+   },[page])
 
    if(loading){
       return <div>Loading...</div>
@@ -159,37 +172,83 @@ function ClosedOrder() {
 
    return (
 			<>
-				<table className="border-collapse border border-gray-300 w-full ">
-					<thead>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<tr key={headerGroup.id}>
-								{headerGroup.headers.map((header) => (
-									<th
-										key={header.id}
-										className="border border-gray-300 p-2 text-xl"
-									>
-										{flexRender(
-											header.column.columnDef.header,
-											header.getContext()
-										)}
-									</th>
-								))}
-							</tr>
-						))}
-					</thead>
+				<div className="">
+					<table className="border-collapse border border-gray-300 w-full ">
+						<thead>
+							{table.getHeaderGroups().map((headerGroup) => (
+								<tr key={headerGroup.id}>
+									{headerGroup.headers.map((header) => (
+										<th
+											key={header.id}
+											className="border border-gray-300 p-2 text-xl"
+										>
+											{flexRender(
+												header.column.columnDef.header,
+												header.getContext()
+											)}
+										</th>
+									))}
+								</tr>
+							))}
+						</thead>
 
-					<tbody>
-						{table.getRowModel().rows.map((row) => (
-							<tr key={row.id}>
-								{row.getVisibleCells().map((cell) => (
-									<td key={cell.id} className={`border border-gray-300 p-2`}>
-										{flexRender(cell.column.columnDef.cell, cell.getContext())}
-									</td>
-								))}
-							</tr>
-						))}
-					</tbody>
-				</table>
+						<tbody>
+							{table.getRowModel().rows.map((row) => (
+								<tr key={row.id}>
+									{row.getVisibleCells().map((cell) => (
+										<td key={cell.id} className={`border border-gray-300 p-2`}>
+											{flexRender(
+												cell.column.columnDef.cell,
+												cell.getContext()
+											)}
+										</td>
+									))}
+								</tr>
+							))}
+						</tbody>
+					</table>
+					{/* for pagination */}
+					<Pagination className="pt-4" >
+						<PaginationContent>
+							<PaginationItem>
+								<PaginationPrevious
+									href="#"
+									onClick={() => {
+										setPage((e) => (e > 1 ? e - 1 : e));
+									
+									}}
+								/>
+							</PaginationItem>
+							{page > 1 ? (
+								<PaginationItem>
+									<PaginationLink href="#">
+										{page > 1 ? page - 1 : null}
+									</PaginationLink>
+								</PaginationItem>
+							) : null}
+
+							<PaginationItem>
+								<PaginationLink href="#" isActive>
+									{page}
+								</PaginationLink>
+							</PaginationItem>
+							<PaginationItem>
+								<PaginationLink href="#">{page + 1}</PaginationLink>
+							</PaginationItem>
+							<PaginationItem>
+								<PaginationEllipsis />
+							</PaginationItem>
+							<PaginationItem>
+								<PaginationNext
+									href="#"
+									onClick={() => {
+										setPage((e) => (data.length ===5 ? e+1: e));
+									}}
+								/>
+							</PaginationItem>
+						</PaginationContent>
+					</Pagination>
+				</div>
 			</>
 		);
 }

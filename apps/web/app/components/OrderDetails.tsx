@@ -4,6 +4,7 @@
 import { useState } from "react";
 import ClosedOrder from "./CloseOrder";
 import OpenOrder from "./OpenOrder";
+import { Button } from "@/components/ui/button";
 
 
 
@@ -11,10 +12,10 @@ function OrderDetails() {
 
    const [orderState,setOrderState]=useState(true);
    return (
-			<div>
-				<div className="border-2 text-xl">
-					<button
-						className={`${orderState ? "bg-gray-600" : "bg-gray-500"} p-2  `}
+			<div className="pt-4">
+				<div className="border-2 text-xl flex gap-2 ">
+					<Button
+						className={`${orderState ? "bg-gray-600" : "bg-gray-500"} p-6 text-xl `}
 						onClick={() => {
 							if (!orderState) {
 								setOrderState(true);
@@ -22,9 +23,9 @@ function OrderDetails() {
 						}}
 					>
 						Open Orders
-					</button>
-					<button
-						className={`${!orderState ? "bg-gray-700" : "bg-gray-500"} p-2 border-1 `}
+					</Button>
+					<Button
+						className={`${!orderState ? "bg-gray-700" : "bg-gray-500"} p-6 text-xl `}
 						onClick={() => {
 							if (orderState) {
 								setOrderState(false);
@@ -32,9 +33,9 @@ function OrderDetails() {
 						}}
 					>
 						closed Order
-					</button>
+					</Button>
 				</div>
-				<div className="w-full overflow-x-scroll">
+				<div className=" w-full overflow-x-scroll pt-2">
 					{orderState ? (
 						<OpenOrder/>
 					) : (
