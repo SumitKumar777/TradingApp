@@ -35,8 +35,14 @@ type ClosedOrderDetailsType = Omit<OrderTypeProp, "id" | "amount" > & {
 	id: number;
 };
 
+export const formatNumber=(badData:string):string=> (Math.trunc((Number(badData)*100))/100).toFixed(2);
 
-
+export const formatTime=(date:string):string=>{
+	const dateData=new Date(date);
+const datee=(dateData.toISOString().split("T"));
+const istTime = dateData.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' });
+return `${istTime} ${datee[0]}`;
+}
 
 
 const columnHelper=createColumnHelper<ClosedOrderDetailsType>();
@@ -54,27 +60,39 @@ const columns = [
 
 	columnHelper.accessor("quantity", {
 		header: "Quantity",
-		cell: (info) => info.getValue(),
+		cell: (info) => formatNumber(info.getValue()),
 	}),
 	columnHelper.accessor("entryPrice", {
 		header: "Entry Price",
-		cell: (info) => info.getValue(),
+		cell: (info) => formatNumber(info.getValue()),
 	}),
 	columnHelper.accessor("pnl", {
 		header: "P&L",
-		cell: (info) => info.getValue(),
+		cell: (info) => {
+			const value = info.getValue<null | undefined | string>();
+			return value == null ? "Null" : formatNumber(value);
+		},
 	}),
 	columnHelper.accessor("takeProfit", {
 		header: "Take Profit",
-		cell: (info) => info.getValue() ?? "Null",
+		cell: (info) => {
+			const value = info.getValue<null | undefined | string>();
+			return value == null ? "Null" : formatNumber(value);
+		},
 	}),
 	columnHelper.accessor("stopLoss", {
 		header: " Stop Loss",
-		cell: (info) => info.getValue() ?? "Null",
+		cell: (info) => {
+			const value = info.getValue<null | undefined | string>();
+			return value == null ? "Null" : formatNumber(value);
+		},
 	}),
 	columnHelper.accessor("exitPrice", {
 		header: " Exit Price",
-		cell: (info) => info.getValue(),
+		cell: (info) => {
+			const value = info.getValue<null | undefined | string>();
+			return value == null ? "Null" : formatNumber(value);
+		},
 	}),
 	columnHelper.accessor("closingReason", {
 		header: " Closing Type ",
@@ -82,11 +100,14 @@ const columns = [
 	}),
 	columnHelper.accessor("orderCreatedAt", {
 		header: "Creation Time",
-		cell: (info) => info.getValue(),
+		cell: (info) => formatTime(info.getValue()),
 	}),
 	columnHelper.accessor("orderClosedAt", {
 		header: "Closing Time",
-		cell: (info) => info.getValue(),
+		cell: (info) => {
+			const value= info.getValue<null|string>();
+			return value ==null ? "NUll" : formatTime(value);
+		},
 	}),
 ];
 
@@ -106,7 +127,6 @@ function ClosedOrder() {
    useEffect(()=>{
 
       async function fetchCloseOrder(){
-         // setInterval and fetch the order and set every 2 second and display it 
          try {
             const fetchClosedOrderData=await axios.get("http://localhost:3001/api/order/orderhistory",{
                withCredentials:true

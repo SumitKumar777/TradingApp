@@ -60,7 +60,8 @@ export default function UserBalance() {
 	  const loadBalance = async () => {
 		try {
 			const res = await fetchBalance();
-			setBalnc(res);
+			const formattedUserBalance=(Math.trunc(res * 100)/100).toFixed(2);
+			setBalnc(Number(formattedUserBalance));
 		} catch (err) {
          console.log("error while fetching balance",err);
 			setError("Failed to fetch balance");
@@ -105,11 +106,7 @@ export default function UserBalance() {
 			}
 			toast.error("Failed to add money to your account");
 		}
-
 	}
-
-
-
 
 	return (
 		<div className="flex items-center gap-2">

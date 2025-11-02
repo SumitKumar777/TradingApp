@@ -18,6 +18,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { fetchBalance } from "./UserBalance";
 import { useUser } from "../store/useUser";
+import { toast } from "sonner";
+import { formatNumber } from "./CloseOrder";
 
 const placeOrderSchema = z.object({
 	quantity: z
@@ -42,10 +44,13 @@ export const handleNumericInput = (e: React.FormEvent<HTMLInputElement>) => {
 };
 type PlaceOrderType = z.infer<typeof placeOrderSchema>;
 
-function PlaceOrder() {
+function PlaceOrder({className}:{className:string}) {
+
+
 	const [state, setState] = useState(true);
 	const tokenPrice = usePrice((state) => state.tokenPrice);
-		const setBalance=useUser((state)=>state.setBalance);
+	const setBalance=useUser((state)=>state.setBalance);
+	const balance=useUser((state)=>state.balance);
 		
 	const form = useForm<PlaceOrderType>({
 		resolver: zodResolver(placeOrderSchema),
@@ -101,6 +106,12 @@ function PlaceOrder() {
 				}
 			}
 
+			const totalOrderAmount=Number(quantity)* tokenPrice;
+			console.log(totalOrderAmount,"totalOrderAmount in place Order");
+
+			if(balance < totalOrderAmount){
+				throw new Error("Insufficient Balance for this order")
+			}
 
 
 			const placeResq = await axios.post(
@@ -117,7 +128,10 @@ function PlaceOrder() {
 			);
 			console.log("placeOrderRequest", placeResq);
 			const updatedBalance=await fetchBalance();
-										setBalance(updatedBalance);
+			const formattedBalance= formatNumber(updatedBalance)
+			setBalance(Number(formattedBalance));
+			toast.success(`Order Successfully Created with quantity ${quantity} and orderValue ${totalOrderAmount}`);
+
 			form.reset({
 				quantity: "",
 				takeProfit: "",
@@ -129,20 +143,21 @@ function PlaceOrder() {
 			} else {
 				console.log("unexpected error while placing order", error);
 			}
+			toast.error((error as Error).message);
 		}
 	};
 
 	return (
-		<div>
-			<div className="border-2 text-xl">
+		<div className={`w-full md:pt-10 ${className}`}>
+			<div className="flex w-full border-2 text-xl gap-2">
 				<Button
-					className={`${state ? "bg-gray-600" : "bg-gray-500"} p-2`}
+					className={`${state && "bg-green-600"}  flex-1 rounded-none hover:bg-green-500`}
 					onClick={() => setState(true)}
 				>
 					Buy
 				</Button>
 				<Button
-					className={`${!state ? "bg-gray-700" : "bg-gray-500"} p-2 border-red-500`}
+					className={`${!state && "bg-red-600"}  flex-1 rounded-none hover:bg-red-500`}
 					onClick={() => setState(false)}
 				>
 					Sell
@@ -154,14 +169,14 @@ function PlaceOrder() {
 					onSubmit={form.handleSubmit((data) =>
 						placeOrderSubmit(data, state ? "long" : "short")
 					)}
-					className="space-y-8"
+					className="space-y-8 py-6 px-2"
 				>
 					<FormField
 						control={form.control}
 						name="quantity"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Quantity</FormLabel>
+								<FormLabel className="text-lg">Quantity</FormLabel>
 								<FormControl>
 									<Input
 										placeholder="Quantity"
@@ -178,7 +193,9 @@ function PlaceOrder() {
 						name="takeProfit"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Take Profit</FormLabel>
+								<FormLabel className="text-lg">
+									Take Profit <p className="opacity-75">(Optional)</p>
+								</FormLabel>
 								<FormControl>
 									<Input
 										placeholder="Take Profit"
@@ -195,7 +212,9 @@ function PlaceOrder() {
 						name="stopLoss"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Stop Loss</FormLabel>
+								<FormLabel className="text-lg">
+									Stop Loss <p className="opacity-75"> (Optional)</p>
+								</FormLabel>
 								<FormControl>
 									<Input
 										placeholder="Stop Loss"
@@ -207,7 +226,14 @@ function PlaceOrder() {
 							</FormItem>
 						)}
 					/>
-					<Button type="submit">Place {state ? "Buy" : "Sell"} Order</Button>
+					<div className="flex justify-center">
+						<Button
+							type="submit"
+							className={`${state ? "bg-green-600 " : "bg-red-600"} w-[80%] rounded-none`}
+						>
+							Place {state ? "Buy" : "Sell"} Order
+						</Button>
+					</div>
 				</form>
 			</Form>
 		</div>

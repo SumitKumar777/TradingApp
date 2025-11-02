@@ -1,14 +1,22 @@
-import {create} from "zustand";
+import { create } from "zustand";
 
-interface UsePriceStoreTypes{
-   tokenPrice:number,
-   setTokenPrice:(value:number)=>void
+interface UsePriceStoreTypes {
+   tokenPrice: number;
+   previousValueIndicator: boolean;
+   setTokenPrice: (value: number) => void;
 }
 
+const usePrice = create<UsePriceStoreTypes>((set) => ({
+   tokenPrice: 0,
+   previousValueIndicator: true,
+   setTokenPrice: (value: number) =>
+      set((state) => {
+         const isDecreasing = state.tokenPrice < value;
+         return {
+            tokenPrice: value,
+            previousValueIndicator: isDecreasing,
+         };
+      }),
+}));
 
-const usePrice= create<UsePriceStoreTypes>((set)=>({
-   tokenPrice:0,
-   setTokenPrice:(value:number)=>set(()=>({tokenPrice:value}))
-}))
-
-export default usePrice
+export default usePrice;

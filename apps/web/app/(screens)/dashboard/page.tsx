@@ -61,9 +61,10 @@ function DashBoard() {
 							// console.log(parsedMessage.data.k);
 
 						}else if (parsedData.type === "tokenPrice") {
+							const formatedTokenPrice=(Math.trunc(parsedMessage.data.p *100)/100).toFixed(2);
+							setTokenPrice(Number(formatedTokenPrice));
 
-
-							setTokenPrice(parsedMessage.data.p);
+							
 						}else if(parsedData.type==="orderClosed"){
 							console.log("closedOrder in frontend",parsedData);
 							const updatedBalance=await fetchBalance();
@@ -92,14 +93,20 @@ function DashBoard() {
 	}, []);
 
 	return (
-		<div className="px-6 ">
-			<div className="flex justify-between items-center">
+		<div className=" grid gap-2 px-6  pt-4 ">
+			<div className="flex justify-between items-center border-1 py-2">
 				<h1 className="text-xl font-semibold">Paapay trade </h1>
 				<UserBalance />
 			</div>
 			<StockPrice />
-			<CandleChart />
-			<PlaceOrder />
+
+			<div>
+				<h1 className="text-xl">Candle Chart </h1>
+				<div className="grid gap-4 md:grid-cols-3">
+					<CandleChart className={"col-span-2 w-full"} />
+					<PlaceOrder className={"md:px-4"}/>
+				</div>
+			</div>
 			<OrderDetails />
 		</div>
 	);

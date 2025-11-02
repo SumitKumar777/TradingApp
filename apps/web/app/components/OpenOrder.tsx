@@ -12,6 +12,7 @@ import {
 } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { useMemo } from "react";
+import { formatNumber, formatTime } from "./CloseOrder";
 
 
 const columnHelper = createColumnHelper<OrderTypeProp>();
@@ -45,7 +46,7 @@ const columns = [
 
 	columnHelper.accessor("quantity", {
 		header: "Quantity",
-		cell: (info) => info.getValue(),
+		cell: (info) => formatNumber(info.getValue()),
 	}),
 	columnHelper.display({
 		id: "capitalInvested",
@@ -55,24 +56,33 @@ const columns = [
 			const quantity = Number(row.quantity) || 0;
 			const entryPrice = Number(row.entryPrice) || 0;
 			const invested = quantity * entryPrice;
-			return invested.toFixed(2);
+			return formatNumber(invested.toString());
 		},
 	}),
 	columnHelper.accessor("entryPrice", {
 		header: "Entry Price",
-		cell: (info) => info.getValue(),
+		cell: (info) => formatNumber(info.getValue()),
 	}),
 	columnHelper.accessor("pnl", {
 		header: "P&L",
-		cell: (info) => info.getValue(),
+		cell: (info) => {
+			const value = info.getValue<string | null>();
+			return value == null ? "Null" : formatNumber(value);
+		},
 	}),
 	columnHelper.accessor("takeProfit", {
 		header: "Take Profit",
-		cell: (info) => info.getValue() ?? "Null",
+		cell: (info) => {
+			const value = info.getValue<string | null>();
+			return value == null ? "Null" : formatNumber(value);
+		},
 	}),
 	columnHelper.accessor("stopLoss", {
 		header: " Stop Loss",
-		cell: (info) => info.getValue() ?? "Null",
+		cell: (info) => {
+			const value = info.getValue<string | null>();
+			return value == null ? "Null" : formatNumber(value);
+		},
 	}),
 
 	columnHelper.accessor("closingReason", {
@@ -81,7 +91,7 @@ const columns = [
 	}),
 	columnHelper.accessor("orderCreatedAt", {
 		header: "Creation Time",
-		cell: (info) => info.getValue(),
+		cell: (info) => formatTime(info.getValue()),
 	}),
 	columnHelper.display({
 		id: "action",
