@@ -31,31 +31,6 @@ const closeOrderSchema = z.object({
 
 // place order
 
-
-
-// create order 
-//          model Orders{
-//   id Int @id @default (autoincrement())
-//   userId String
-//   amount Decimal
-//   quantity Int
-//   type OrderType
-//   position OrderPosition
-//   status OrderStatus
-//   pnl Decimal
-//   takeProfit  Decimal ?
-//   stopLoss  Decimal ?
-//   entryPrice Decimal
-//   exitPrice Decimal ?
-//   closingReason ClosingReason @default (Automatic)
-//   orderCreatedAt  DateTime @default (now())
-//   orderClosedAt   DateTime ?
-//   updatedAt DateTime @updatedAt
-//   user  User @relation(fields: [userId], references: [id])
-//          }
-
-
-
 orderRouter.post("/placeorder",authUser, async(req,res)=>
    {
       // received the order details
@@ -113,6 +88,7 @@ orderRouter.post("/placeorder",authUser, async(req,res)=>
                       type: orderData.type === "limit" ? "Limit" : "Market",
                       position: orderData.position === "long" ? "Long" : "Short",
                       status: "Open",
+                      closingReason: (orderData.takeProfit || orderData.stopLoss) ? "Manual" :"Automatic",
                       takeProfit: orderData.takeProfit ? orderData.takeProfit : null,
                       stopLoss: orderData.stopLoss ? orderData.stopLoss : null,
                       entryPrice: orderData.entryPrice
@@ -127,10 +103,7 @@ orderRouter.post("/placeorder",authUser, async(req,res)=>
 
          }
 
-
          console.log(placeOrder, "order created successfully");
-
-
 
          const httpRedisClient=await connectRedisClient();
 
@@ -185,8 +158,17 @@ orderRouter.post("/closeorder",authUser,async(req,res)=>{
 
 orderRouter.get("/orderhistory",authUser,async(req,res)=>{
    const userId=req.userId;
+   const page=req.query.page;
+
+   if(!page){
+      throw new Error("page number is not provided");
+   }
+
+   const skipCount=(Number(page)-1)*5;
+
    try {
       const orderHistory=await prisma.user.findUnique({
+        
          where:{
             id:userId
          },
@@ -197,7 +179,9 @@ orderRouter.get("/orderhistory",authUser,async(req,res)=>{
                },
                orderBy:{
                   orderClosedAt:"desc"
-               }
+               },
+               skip: skipCount,
+               take: 5,
             }
          }
       })
@@ -206,7 +190,7 @@ orderRouter.get("/orderhistory",authUser,async(req,res)=>{
       console.log("error in getting the order history ",error);
       return res.status(500).json({status:"failed",message:"Internal server error in getting the order history",error})
    }
-   
+
 })
 
 export default orderRouter;

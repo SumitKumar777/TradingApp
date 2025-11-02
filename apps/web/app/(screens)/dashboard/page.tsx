@@ -68,7 +68,10 @@ function DashBoard() {
 						}else if(parsedData.type==="orderClosed"){
 							console.log("closedOrder in frontend",parsedData);
 							const updatedBalance=await fetchBalance();
-							setBalance(updatedBalance);
+							const formattedBalance = (
+								Math.trunc(updatedBalance * 100) / 100
+							).toFixed(2);
+							setBalance(Number(formattedBalance));
 							closeOrder(parsedData.order.id);
 
 						}

@@ -5,8 +5,10 @@ import Decimal from "decimal.js";
 
 
 
+
 const orderConsumerClient = createClient();
 const orderUpdateProducer = createClient();
+
 
 
 type PositionType = "Long" | "Short";
@@ -14,6 +16,8 @@ type OrderStatus = "Open" | "Closed";
 type ClosingReasonType = "Automatic" | "Manual";
 type OrderExecutionType = "Market" | "Limit";
 type ClosingReason="Manual"|"Automatic";
+
+
 
 interface OrderType {
    id: number;
@@ -166,8 +170,6 @@ async function process(price: number) {
    }
 }
 
-
-
 priceEvent.on("priceUpdate", (price) => {
    console.log("Bitcoin price in orderProcessor:", price);
    process(price);
@@ -177,6 +179,26 @@ priceEvent.on("priceUpdate", (price) => {
 export async function startOrderProcesser() {
    await Promise.all([orderConsumerClient.connect(), orderUpdateProducer.connect()]);
    console.log("Order processor started...");
+
+   // fetch all the open order and put them into the state so that when the engine restarts it can recover the state 
+
+   const allOpenOrdersFromDb=await prisma.orders.findMany({
+      where:{
+         status:"Open"
+      }
+   })
+
+
+   for (const order of allOpenOrdersFromDb) {
+      const recoveredOrder = {
+         ...order, amount: Number(order.amount), quantity: Number(order.quantity), pnl: order.pnl ? Number(order.
+            pnl) : null, takeProfit: order.takeProfit ? Number(order.takeProfit) : null, stopLoss: order.stopLoss ? Number(order.stopLoss) : null,
+         entryPrice: Number(order.entryPrice), exitPrice: order.exitPrice ? Number(order.exitPrice) : null
+      };
+      allOpenOrders.add(recoveredOrder);
+      orderMap.set(order.id, recoveredOrder);  
+   }
+
 
    while (true) {
       const data = await orderConsumerClient.xRead(
