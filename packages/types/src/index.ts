@@ -1,7 +1,5 @@
-export * from "./auth"
-
+export * from "./auth.js";
 
 export interface Testing {
-   name:"string"
+  name: "string";
 }
-

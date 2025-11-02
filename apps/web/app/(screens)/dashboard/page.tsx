@@ -92,9 +92,9 @@ function DashBoard() {
 	}, []);
 
 	return (
-		<div>
-			<div className="flex justify-between px-3 items-center">
-				<h1>Paapay trade </h1>
+		<div className="px-6 ">
+			<div className="flex justify-between items-center">
+				<h1 className="text-xl font-semibold">Paapay trade </h1>
 				<UserBalance />
 			</div>
 			<StockPrice />

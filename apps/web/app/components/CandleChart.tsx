@@ -72,7 +72,7 @@ export default function CandleChart() {
 	}, [interval]);
 
 	return (
-		<div>
+		<div className="">
 			<div className="flex space-x-2">
 				<button
 					className={`${interval === 5 ? "bg-gray-700" : "bg-gray-500"}`}

@@ -30,7 +30,7 @@ const placeOrderSchema = z.object({
 });
 
 
-const handleNumericInput = (e: React.FormEvent<HTMLInputElement>) => {
+export const handleNumericInput = (e: React.FormEvent<HTMLInputElement>) => {
 	let value = e.currentTarget.value;
 	value = value.replace(/[^0-9.]/g, "").replace(/(\..*?)\..*/g, "$1");
 

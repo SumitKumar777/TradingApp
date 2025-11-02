@@ -12,7 +12,7 @@ export const signUpObject = z.object({
       .min(5, { message: "Email is too short" })
       .max(254, { message: "Email is too long" }),
    password: z.string().min(6, { message: "too short minimum should be 6 letters" }).max(14, { message: "too long maximum should be 14 character " })
-})
+});
 
 export const signInObject = z.object({
    email: z.string().trim()
@@ -23,6 +23,15 @@ export const signInObject = z.object({
    password: z.string().min(6, { message: "too short minimum should be 6 letters" }).max(14, { message: "too long maximum should be 14 character " })
 })
 
+export const depositMoney = z.object({
+   amount: z
+      .string()
+      .regex(/^\d+(\.\d+)?$/, { message: "Amount must be a valid number" })
+      .min(3, { message: "Too small amount to add" })
+      .max(10, { message: "Too big amount to add" }),
+});
+
 
 export type SigninType=z.infer<typeof signInObject>;
 export type SignupType= z.infer<typeof signUpObject>;
+export type DepositMoney = z.infer<typeof depositMoney>;
