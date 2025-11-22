@@ -39,9 +39,7 @@ function DashBoard() {
 				connection.onmessage = async(data) => {
 
 					try {
-						// parse the incoming message payload
 						const parsedData = JSON.parse(data.data);
-						// console.log(parsedData,"parsedData ")
 						let parsedMessage;
 						try {
 							parsedMessage = JSON.parse(parsedData.message);
