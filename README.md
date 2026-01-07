@@ -6,6 +6,87 @@ A full-stack trading application built as a monorepo using Turborepo. This platf
 
 This project follows a microservices architecture with the following components:
 
+### Architecture Diagram
+
+```
+                            TRADING APP - SIMPLIFIED ARCHITECTURE
+                            ═══════════════════════════════════════
+
+                                    ┌─────────────────┐
+                                    │     BINANCE     │
+                                    │   (Price Feed)  │
+                                    └────────┬────────┘
+                                             │
+                                             ▼
+                                    ┌─────────────────┐
+                                    │  PRICE POLLAR   │
+                                    │ (Fetches BTC    │
+                                    │  prices)        │
+                                    └────────┬────────┘
+                                             │
+                                             ▼
+                         ┌───────────────────────────────────────┐
+                         │                REDIS                  │
+                         │   (Message Broker - connects all)     │
+                         └───────────────────┬───────────────────┘
+                                             │
+              ┌──────────────────────────────┼──────────────────────────────┐
+              │                              │                              │
+              ▼                              ▼                              ▼
+     ┌─────────────────┐           ┌─────────────────┐           ┌─────────────────┐
+     │     ENGINE      │           │   WS SERVER     │           │  HTTP BACKEND   │
+     │                 │           │                 │           │                 │
+     │ • Process orders│           │ • Real-time     │           │ • REST API      │
+     │ • Calculate P&L │           │   updates to    │           │ • Place orders  │
+     │ • Check TP/SL   │◀─────────▶│   browser       │           │ • Auth/Login    │
+     │                 │           │                 │           │ • User wallet   │
+     └────────┬────────┘           └────────┬────────┘           └────────┬────────┘
+              │                              │                              │
+              │                              │                              │
+              ▼                              │                              ▼
+     ┌─────────────────┐                     │                    ┌─────────────────┐
+     │   POSTGRESQL    │                     │                    │   TIMESCALEDB   │
+     │                 │                     │                    │                 │
+     │ • Users         │                     │                    │ • Chart candles │
+     │ • Orders        │                     │                    │ • Price history │
+     │ • Wallet balance│                     │                    │                 │
+     └─────────────────┘                     │                    └─────────────────┘
+                                             │
+                                             ▼
+                                    ┌─────────────────┐
+                                    │   WEB FRONTEND  │
+                                    │    (Next.js)    │
+                                    │                 │
+                                    │ • Trading UI    │
+                                    │ • Live charts   │
+                                    │ • Place orders  │
+                                    │ • View P&L      │
+                                    └─────────────────┘
+                                             │
+                                             ▼
+                                    ┌─────────────────┐
+                                    │      USER       │
+                                    │    (Browser)    │
+                                    └─────────────────┘
+
+
+                              ═══════════════════════════
+                                    HOW IT WORKS
+                              ═══════════════════════════
+
+    1. PRICE POLLAR fetches live BTC prices from Binance
+    
+    2. Prices flow through REDIS to all services
+    
+    3. USER opens the WEB FRONTEND and sees live prices
+    
+    4. USER places an order → HTTP BACKEND saves it → ENGINE processes it
+    
+    5. ENGINE checks Take Profit / Stop Loss on every price tick
+    
+    6. Updates are pushed to USER via WS SERVER in real-time
+```
+
 ### Apps
 
 | App | Description |
