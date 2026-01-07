@@ -1,135 +1,182 @@
-# Turborepo starter
+# TradingApp 📈
 
-This Turborepo starter is maintained by the Turborepo core team.
+A full-stack trading application built as a monorepo using Turborepo. This platform enables users to place market and limit orders, track positions, manage their wallet balance, and view real-time price data with interactive charts.
 
-## Using this example
+## 🏗️ Architecture
 
-Run the following command:
+This project follows a microservices architecture with the following components:
 
-```sh
-npx create-turbo@latest
+### Apps
+
+| App | Description |
+|-----|-------------|
+| **web** | Next.js 15 frontend with React 19, featuring interactive trading charts (Lightweight Charts), order management, and a responsive UI built with Radix UI & Tailwind CSS |
+| **httpBackend** | Express.js REST API handling authentication, order placement, wallet management, and user operations |
+| **wsServer** | WebSocket server for real-time price updates and live order notifications |
+| **engine** | Trading engine that processes orders, manages order books, and calculates P&L |
+| **pricePollar** | Service that polls external price feeds and distributes price data via Redis |
+
+### Packages
+
+| Package | Description |
+|---------|-------------|
+| **@repo/db** | Prisma ORM configuration with PostgreSQL database schema for users and orders |
+| **@repo/redisclient** | Shared Redis client for pub/sub messaging between services |
+| **@repo/timescaledb** | TimescaleDB integration for time-series price data storage |
+| **@repo/types** | Shared TypeScript types and Zod validation schemas |
+| **@repo/ui** | Shared React component library |
+| **@repo/eslint-config** | Shared ESLint configurations |
+| **@repo/typescript-config** | Shared TypeScript configurations |
+
+## ✨ Features
+
+- **Order Management**: Place Market and Limit orders with Long/Short positions
+- **Wallet System**: Deposit funds and track balance
+- **Real-time Updates**: Live price feeds via WebSocket connections
+- **P&L Tracking**: Profit and loss calculation for open and closed positions
+- **Risk Management**: Set Take Profit and Stop Loss levels on orders
+- **Interactive Charts**: Real-time trading charts powered by Lightweight Charts
+- **Authentication**: Secure user authentication with JWT tokens
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 15, React 19, Tailwind CSS, Radix UI, Zustand, React Hook Form
+- **Backend**: Express.js, Node.js
+- **Real-time**: WebSocket (ws)
+- **Database**: PostgreSQL with Prisma ORM
+- **Time-series**: TimescaleDB
+- **Caching/Messaging**: Redis
+- **Validation**: Zod
+- **Build Tool**: Turborepo
+- **Package Manager**: pnpm
+- **Language**: TypeScript
+
+## 📋 Prerequisites
+
+- Node.js >= 18
+- pnpm 9.0.0+
+- PostgreSQL
+- Redis
+- TimescaleDB (optional, for price history)
+
+## 🚀 Getting Started
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/SumitKumar777/TradingApp.git
+   cd TradingApp
+   ```
+
+2. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+
+3. Set up environment variables:
+   ```bash
+   # Create .env files in respective apps/packages
+   # Required variables:
+   DATABASE_URL="postgresql://..."
+   REDIS_URL="redis://..."
+   JWT_SECRET="your-secret-key"
+   ```
+
+4. Generate Prisma client:
+   ```bash
+   cd packages/db
+   pnpm prisma generate
+   pnpm prisma db push
+   ```
+
+### Development
+
+Run all apps and packages in development mode:
+```bash
+pnpm dev
 ```
 
-## What's inside?
+Run a specific app:
+```bash
+# Run only the web frontend
+pnpm dev --filter=web
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+# Run only the HTTP backend
+pnpm dev --filter=@repo/httpbackend
+```
 
 ### Build
 
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+Build all apps and packages:
+```bash
+pnpm build
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+### Linting
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+```bash
+pnpm lint
 ```
 
-### Develop
+### Type Checking
 
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+```bash
+pnpm check-types
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+## 📁 Project Structure
 
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+TradingApp/
+├── apps/
+│   ├── web/              # Next.js frontend
+│   ├── httpBackend/      # REST API server
+│   ├── wsServer/         # WebSocket server
+│   ├── engine/           # Trading engine
+│   └── pricePollar/      # Price feed service
+├── packages/
+│   ├── db/               # Prisma database package
+│   ├── redisClient/      # Redis client
+│   ├── timescaledb/      # TimescaleDB integration
+│   ├── types/            # Shared types & validation
+│   ├── ui/               # UI component library
+│   ├── eslint-config/    # ESLint configurations
+│   └── typescript-config/# TypeScript configurations
+├── turbo.json
+├── package.json
+└── pnpm-workspace.yaml
 ```
+
+## 📊 Database Schema
+
+The application uses the following main entities:
+
+- **User**: Stores user credentials, email, and wallet balance
+- **Orders**: Tracks all trading orders with status, P&L, entry/exit prices, and risk parameters
+
+## 🔧 Configuration
+
+### Turborepo
+
+The project uses Turborepo for efficient builds with caching. See `turbo.json` for task configurations.
 
 ### Remote Caching
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
+To enable remote caching with Vercel:
+```bash
 turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
 turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
 ```
 
-## Useful Links
+## 📄 License
 
-Learn more about the power of Turborepo:
+ISC
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+## 👤 Author
+
+Sumit Kumar
+
+---
+
+⭐ Star this repo if you find it useful!
